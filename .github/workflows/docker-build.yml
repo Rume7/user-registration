@@ -67,8 +67,8 @@ jobs:
 
       - name: Test Docker image
         run: |
-          # Create a simple tag for testing
-          TEST_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test-${{ github.sha }}"
+          # Create a simple tag for testing with lowercase repository name
+          TEST_TAG="${{ env.REGISTRY }}/${{ github.repository | lower }}:test-${{ github.sha }}"
           
           # Build a local test image
           docker build -t "$TEST_TAG" .
