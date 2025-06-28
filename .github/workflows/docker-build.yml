@@ -8,6 +8,11 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+# Add permissions for GitHub Container Registry
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   test-and-build:
     name: Test and Build Docker Image
@@ -62,17 +67,38 @@ jobs:
 
       - name: Test Docker image
         run: |
-          # Pull the image we just built
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          # Get the image name from metadata
+          IMAGE_TAG="${{ steps.meta.outputs.tags }}"
+          # Extract the first tag (usually the SHA tag)
+          FIRST_TAG=$(echo "$IMAGE_TAG" | cut -d',' -f1)
           
-          # Run the container
+          echo "Testing image: $FIRST_TAG"
+          
+          # Pull the image we just built
+          docker pull "$FIRST_TAG"
+          
+          # Start PostgreSQL for testing
+          docker run -d \
+            --name test-postgres \
+            -e POSTGRES_DB=testdb \
+            -e POSTGRES_USER=testuser \
+            -e POSTGRES_PASSWORD=testpass \
+            -p 5432:5432 \
+            postgres:16.8-alpine
+          
+          # Wait for PostgreSQL to be ready
+          sleep 10
+          
+          # Run the application container
           docker run -d \
             --name test-app \
+            --link test-postgres:postgres \
             -p 8080:8080 \
-            -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/testdb \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://test-postgres:5432/testdb \
             -e SPRING_DATASOURCE_USERNAME=testuser \
             -e SPRING_DATASOURCE_PASSWORD=testpass \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+            -e SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop \
+            "$FIRST_TAG"
           
           # Wait for application to start
           sleep 30
@@ -80,6 +106,9 @@ jobs:
           # Test health endpoint
           curl -f http://localhost:8080/actuator/health || exit 1
           
+          # Test root endpoint
+          curl -f http://localhost:8080/ || exit 1
+          
           # Cleanup
-          docker stop test-app || true
-          docker rm test-app || true 
+          docker stop test-app test-postgres || true
+          docker rm test-app test-postgres || true 
