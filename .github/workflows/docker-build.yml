@@ -8,9 +8,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
-# Add permissions for GitHub Container Registry
+# Add permissions for GitHub Container Registry and repository write access
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
