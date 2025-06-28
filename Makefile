@@ -21,6 +21,10 @@ help:
 	@echo "  compose-up   - Start with Docker Compose"
 	@echo "  compose-down - Stop Docker Compose"
 	@echo "  logs        - Show application logs"
+	@echo "  version     - Show current version"
+	@echo "  bump-patch  - Bump patch version (1.0.0 -> 1.0.1)"
+	@echo "  bump-minor  - Bump minor version (1.0.0 -> 1.1.0)"
+	@echo "  bump-major  - Bump major version (1.0.0 -> 2.0.0)"
 
 # Build the application
 .PHONY: build
@@ -84,6 +88,26 @@ compose-down:
 .PHONY: logs
 logs:
 	docker-compose logs -f app
+
+# Show current version
+.PHONY: version
+version:
+	@echo "Current version: $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout)"
+
+# Bump patch version (1.0.0 -> 1.0.1)
+.PHONY: bump-patch
+bump-patch:
+	./scripts/bump-version.sh --patch
+
+# Bump minor version (1.0.0 -> 1.1.0)
+.PHONY: bump-minor
+bump-minor:
+	./scripts/bump-version.sh --minor
+
+# Bump major version (1.0.0 -> 2.0.0)
+.PHONY: bump-major
+bump-major:
+	./scripts/bump-version.sh --major
 
 # Development setup
 .PHONY: dev-setup
