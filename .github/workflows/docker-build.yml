@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -34,6 +36,36 @@ jobs:
 
       - name: Build application
         run: mvn clean package -DskipTests
+
+      - name: Bump version
+        id: bump-version
+        run: |
+          # Get current version from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Parse version components
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          
+          # Increment patch version
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+          
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Update pom.xml with new version
+          mvn versions:set -DnewVersion="$NEW_VERSION" -DgenerateBackupPoms=false
+          
+          # Commit and push the version bump
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add pom.xml
+          git commit -m "Bump version to $NEW_VERSION [skip ci]"
+          git push
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -107,4 +139,26 @@ jobs:
           
           # Cleanup
           docker stop test-app test-postgres || true
-          docker rm test-app test-postgres || true 
+          docker rm test-app test-postgres || true
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump-version.outputs.new_version }}
+          release_name: Release v${{ steps.bump-version.outputs.new_version }}
+          body: |
+            ## What's Changed
+            
+            - Automated version bump
+            - Docker image build and test
+            - Application deployment
+            
+            ## Docker Image
+            
+            ```bash
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ steps.bump-version.outputs.new_version }}
+            ```
+          draft: false
+          prerelease: false 
