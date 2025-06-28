@@ -102,7 +102,7 @@ src/main/java/com/codehacks/user_registration/
 
 2. **Run the application**
    ```bash
-   ./mvnw spring-boot:run
+   mvn spring-boot:run
    ```
 
 ## 📚 API Documentation
@@ -190,10 +190,10 @@ Key configuration in `application.yml`:
 
 ```bash
 # Run all tests
-./mvnw test
+mvn test
 
 # Run tests with coverage
-./mvnw test jacoco:report
+mvn test jacoco:report
 ```
 
 ### API Testing
