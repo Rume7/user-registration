@@ -38,29 +38,6 @@ A Spring Boot application demonstrating event-driven architecture with user regi
 - **Docker**: Containerization for consistent deployment
 - **Docker Compose**: Multi-service orchestration
 
-## 📁 Project Structure
-
-```
-src/main/java/com/codehacks/user_registration/
-├── UserRegistrationApplication.java    # Main application class
-├── controller/
-│   └── UserController.java            # REST API endpoints
-├── service/
-│   └── UserService.java               # Business logic and event publishing
-├── repository/
-│   └── UserRepository.java            # Data access layer
-├── model/
-│   └── User.java                      # JPA entity
-├── dto/
-│   ├── UserRegistrationRequest.java   # Request DTO with validation
-│   └── UserResponse.java              # Response DTO
-├── event/
-│   └── UserRegisteredEvent.java       # Custom application event
-└── listener/
-    ├── EmailNotificationListener.java # Email notification handler
-    └── WelcomeBonusListener.java      # Welcome bonus handler
-```
-
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -85,7 +62,6 @@ src/main/java/com/codehacks/user_registration/
 3. **Access the application**
    - API Base URL: http://localhost:8080
    - Swagger UI: http://localhost:8080/swagger-ui.html
-   - Database: localhost:5432 (userdb)
 
 4. **Stop the application**
    ```bash
@@ -260,7 +236,13 @@ The application can be deployed to Kubernetes using the provided manifests in th
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary software. All rights reserved.
+
+**Commercial use, redistribution, or modification requires explicit written permission.**
+
+For licensing inquiries, please contact: `rume@codemarks.com`
+
+See [LICENSE](LICENSE) file for complete terms and conditions.
 
 ## 🆘 Support
 
