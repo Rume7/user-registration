@@ -15,7 +15,7 @@
 
 		<groupId>com.codehacks</groupId>
 		<artifactId>user-registration</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 		<name>Event-Driven User Registration App</name>
 		<description>Spring Boot application demonstrating event-driven architecture with user registration</description>
 
