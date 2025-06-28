@@ -12,10 +12,8 @@ WORKDIR /app
 # Copy Maven configuration files first (for better layer caching)
 # Maven will cache dependencies if pom.xml hasn't changed
 COPY pom.xml .
-COPY .mvn .mvn
 
 # Download dependencies (this layer will be cached if pom.xml doesn't change)
-# The --no-transfer-progress flag reduces build output noise
 RUN mvn dependency:go-offline -B
 
 # Copy source code
@@ -23,12 +21,14 @@ COPY src src
 
 # Build the application
 # -DskipTests skips running tests during build (tests should be run separately)
-# -B runs in batch mode (non-interactive)
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime Stage
 # This stage creates the final lightweight runtime image
 FROM eclipse-temurin:17-jre-alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Add metadata to the image
 LABEL maintainer="User Registration Team"
