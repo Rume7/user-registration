@@ -1,0 +1,126 @@
+# Docker Compose configuration for User Registration Application
+# This file defines the complete application stack including the Spring Boot app and PostgreSQL database
+# It demonstrates container orchestration, networking, and environment configuration
+
+version: '3.8'
+
+# Define services that make up the application
+services:
+  # Spring Boot Application Service
+  app:
+    # Build the application from the current directory using the Dockerfile
+    build: .
+    
+    # Container name for easy identification
+    container_name: user-registration-app
+    
+    # Port mapping: host_port:container_port
+    # The application runs on port 8080 inside the container
+    # and is accessible on port 8080 on the host machine
+    ports:
+      - "8080:8080"
+    
+    # Dependencies: this service depends on the database service
+    # Docker Compose will start the database first
+    depends_on:
+      - db
+    
+    # Environment variables for the application
+    # These override the default values in application.yml
+    environment:
+      # Database connection configuration
+      # The hostname 'db' refers to the database service defined below
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/userdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      
+      # JPA/Hibernate configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      
+      # Server configuration
+      SERVER_PORT: 8080
+      
+      # Logging configuration
+      LOGGING_LEVEL_COM_CODEHACKS_USER_REGISTRATION: INFO
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: WARN
+    
+    # Restart policy: restart the container if it fails
+    restart: unless-stopped
+    
+    # Health check to ensure the application is running properly
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Network configuration - both services use the same network
+    networks:
+      - user-registration-network
+
+  # PostgreSQL Database Service
+  db:
+    # Use the official PostgreSQL image with Alpine Linux for smaller size
+    image: postgres:16.8-alpine
+    
+    # Container name for easy identification
+    container_name: user-registration-db
+    
+    # Port mapping for database access (optional, for debugging)
+    # Comment out if you don't need external database access
+    ports:
+      - "5432:5432"
+    
+    # Environment variables for PostgreSQL configuration
+    environment:
+      # Database name, user, and password
+      # These values can be overridden using a .env file
+      POSTGRES_DB: ${POSTGRES_DB:-userdb}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      
+      # PostgreSQL configuration for better performance
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    # Volume for data persistence
+    # This ensures database data survives container restarts
+    volumes:
+      # Named volume for database data
+      - postgres_data:/var/lib/postgresql/data
+      
+      # Optional: mount initialization scripts
+      # - ./init-scripts:/docker-entrypoint-initdb.d
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check for database readiness
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-userdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
+    # Network configuration
+    networks:
+      - user-registration-network
+
+# Named volumes for data persistence
+# Volumes are managed by Docker and persist across container restarts
+volumes:
+  # PostgreSQL data volume
+  postgres_data:
+    driver: local
+
+# Custom network for service communication
+# This creates an isolated network for the application services
+networks:
+  user-registration-network:
+    driver: bridge
+    # Optional: configure network settings
+    # ipam:
+    #   config:
+    #     - subnet: 172.20.0.0/16 

@@ -1,0 +1,46 @@
+# Test Configuration for User Registration Application
+# This file provides test-specific settings that override the main application.yml
+# It uses H2 in-memory database for fast, isolated testing
+
+spring:
+  # Use H2 in-memory database for testing
+  # This provides fast, isolated database for each test run
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+
+  # JPA configuration for testing
+  jpa:
+    # Create and drop schema for each test run
+    # This ensures clean state between tests
+    hibernate:
+      ddl-auto: create-drop
+    
+    # Show SQL for debugging tests
+    show-sql: true
+    
+    # H2 dialect for optimal SQL generation
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        use_sql_comments: true
+
+  # Disable OpenAPI for faster test startup
+  autoconfigure:
+    exclude:
+      - org.springdoc.autoconfigure.SpringDocAutoConfiguration
+
+# Logging configuration for tests
+logging:
+  level:
+    com.codehacks.user_registration: DEBUG
+    org.springframework: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Server configuration for tests
+server:
+  port: 0  # Use random available port for tests 

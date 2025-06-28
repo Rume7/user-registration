@@ -1,0 +1,137 @@
+# Spring Boot Application Configuration
+# This file configures various aspects of the Spring Boot application
+# including database connections, JPA settings, and API documentation
+
+# Application Information
+# Used for identification and monitoring
+spring:
+  application:
+    name: user-registration
+
+  # Database Configuration
+  # PostgreSQL connection settings for containerized environment
+  datasource:
+    # Database URL points to the 'db' service defined in docker-compose.yml
+    # The hostname 'db' is resolved by Docker's internal DNS
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/userdb}
+
+    # Database credentials
+    # These values are overridden by environment variables in docker-compose.yml
+    # Default values are provided for local development
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+
+    # Connection pool settings for better performance
+    hikari:
+      # Maximum number of connections in the pool
+      maximum-pool-size: 10
+      # Minimum number of idle connections
+      minimum-idle: 5
+      # Maximum lifetime of a connection (30 minutes)
+      max-lifetime: 1800000
+      # Connection timeout (30 seconds)
+      connection-timeout: 30000
+
+  # JPA and Hibernate Configuration
+  jpa:
+    # Automatically create/update database schema
+    # Options: create, create-drop, update, validate, none
+    # 'update' is suitable for development - creates tables if they don't exist
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+
+    # Show SQL queries in logs (useful for development/debugging)
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+
+    # Format SQL queries for better readability in logs
+    properties:
+      hibernate:
+        format_sql: true
+        # Use PostgreSQL dialect for optimal SQL generation
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Enable SQL comments for better debugging
+        use_sql_comments: true
+        # Batch processing for better performance
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Server Configuration
+  server:
+    # Port configuration - can be overridden by environment variable
+    port: ${SERVER_PORT:8080}
+
+    # Error handling configuration
+    error:
+      # Include stack trace in error responses (disable in production)
+      include-stacktrace: on_param
+      # Include error message in responses
+      include-message: always
+
+# Logging Configuration
+# Different log levels for different packages
+logging:
+  level:
+    # Application-specific logging
+    com.codehacks.user_registration: ${LOGGING_LEVEL_COM_CODEHACKS_USER_REGISTRATION:INFO}
+    # Spring framework logging (set to WARN to reduce noise)
+    org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
+    # Hibernate SQL logging (enable for development)
+    org.hibernate.SQL: ${LOGGING_LEVEL_ORG_HIBERNATE_SQL:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER:TRACE}
+    # Connection pool logging
+    com.zaxxer.hikari: INFO
+
+  # Log pattern for better readability
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# OpenAPI/Swagger Configuration
+# API documentation settings
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  info:
+    title: User Registration API
+    description: Event-driven user registration application with Spring Boot
+    version: 1.0.0
+    contact:
+      name: User Registration Team
+      email: support@example.com
+  servers:
+    - url: http://localhost:8080
+      description: Local development server
+    - url: http://localhost:8080
+      description: Docker container server
+
+# Spring Boot Actuator Configuration
+# Production-ready monitoring and management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+    info:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
