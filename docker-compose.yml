@@ -6,7 +6,6 @@ version: '3.8'
 
 # Define services that make up the application
 services:
-  # Spring Boot Application Service
   app:
     # Build the application from the current directory using the Dockerfile
     build: .

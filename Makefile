@@ -1,82 +1,114 @@
-# Makefile for User Registration Application
-# Provides convenient commands for development and deployment
+# User Registration Application Makefile
 
-.PHONY: help build test run docker-build docker-run docker-stop docker-logs clean
+# Variables
+APP_NAME = user-registration
+DOCKER_IMAGE = user-registration
+DOCKER_TAG = latest
+CONTAINER_NAME = user-registration-app
 
 # Default target
+.PHONY: help
 help:
-	@echo "Available commands:"
-	@echo "  build        - Build the application with Maven"
-	@echo "  test         - Run tests"
-	@echo "  run          - Run the application locally"
+	@echo "Available targets:"
+	@echo "  build     - Build the application"
+	@echo "  test      - Run tests"
+	@echo "  run       - Run the application"
+	@echo "  clean     - Clean build artifacts"
 	@echo "  docker-build - Build Docker image"
-	@echo "  docker-run   - Start application with Docker Compose"
-	@echo "  docker-stop  - Stop Docker containers"
-	@echo "  docker-logs  - Show Docker logs"
-	@echo "  clean        - Clean build artifacts"
-	@echo "  prod-run     - Start production environment"
-	@echo "  backup       - Create database backup"
+	@echo "  docker-run   - Run Docker container"
+	@echo "  docker-stop  - Stop Docker container"
+	@echo "  docker-clean - Remove Docker container and image"
+	@echo "  compose-up   - Start with Docker Compose"
+	@echo "  compose-down - Stop Docker Compose"
+	@echo "  logs        - Show application logs"
 
 # Build the application
+.PHONY: build
 build:
-	@echo "Building application..."
-	./mvnw clean compile
+	mvn clean compile
 
 # Run tests
+.PHONY: test
 test:
-	@echo "Running tests..."
-	./mvnw test
+	mvn test
 
-# Run the application locally
+# Run the application
+.PHONY: run
 run:
-	@echo "Starting application locally..."
-	./mvnw spring-boot:run
-
-# Build Docker image
-docker-build:
-	@echo "Building Docker image..."
-	docker-compose build
-
-# Start application with Docker Compose
-docker-run:
-	@echo "Starting application with Docker Compose..."
-	docker-compose up -d
-
-# Stop Docker containers
-docker-stop:
-	@echo "Stopping Docker containers..."
-	docker-compose down
-
-# Show Docker logs
-docker-logs:
-	@echo "Showing Docker logs..."
-	docker-compose logs -f
+	mvn spring-boot:run
 
 # Clean build artifacts
+.PHONY: clean
 clean:
-	@echo "Cleaning build artifacts..."
-	./mvnw clean
-	docker system prune -f
+	mvn clean
 
-# Start production environment
-prod-run:
-	@echo "Starting production environment..."
-	docker-compose -f docker-compose.prod.yml up -d
+# Build Docker image
+.PHONY: docker-build
+docker-build:
+	docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
-# Create database backup
-backup:
-	@echo "Creating database backup..."
-	docker-compose exec db pg_dump -U postgres userdb > backup/backup_$(shell date +%Y%m%d_%H%M%S).sql
+# Run Docker container
+.PHONY: docker-run
+docker-run:
+	docker run -d \
+		--name $(CONTAINER_NAME) \
+		-p 8080:8080 \
+		-e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/userdb \
+		-e SPRING_DATASOURCE_USERNAME=user \
+		-e SPRING_DATASOURCE_PASSWORD=password \
+		$(DOCKER_IMAGE):$(DOCKER_TAG)
 
-# Check application health
-health:
-	@echo "Checking application health..."
-	@curl -f http://localhost:8080/actuator/health || echo "Application is not healthy"
+# Stop Docker container
+.PHONY: docker-stop
+docker-stop:
+	docker stop $(CONTAINER_NAME) || true
 
-# Show application info
-info:
-	@echo "Application Information:"
-	@echo "  API Base URL: http://localhost:8080"
-	@echo "  Swagger UI: http://localhost:8080/swagger-ui.html"
-	@echo "  Health Check: http://localhost:8080/actuator/health"
-	@echo "  Database: localhost:5432" 
+# Remove Docker container and image
+.PHONY: docker-clean
+docker-clean:
+	docker stop $(CONTAINER_NAME) || true
+	docker rm $(CONTAINER_NAME) || true
+	docker rmi $(DOCKER_IMAGE):$(DOCKER_TAG) || true
+
+# Start with Docker Compose
+.PHONY: compose-up
+compose-up:
+	docker-compose up -d
+
+# Stop Docker Compose
+.PHONY: compose-down
+compose-down:
+	docker-compose down
+
+# Show application logs
+.PHONY: logs
+logs:
+	docker-compose logs -f app
+
+# Development setup
+.PHONY: dev-setup
+dev-setup:
+	@echo "Setting up development environment..."
+	@echo "1. Starting PostgreSQL..."
+	docker run -d \
+		--name postgres-dev \
+		-e POSTGRES_DB=userdb \
+		-e POSTGRES_USER=user \
+		-e POSTGRES_PASSWORD=password \
+		-p 5432:5432 \
+		postgres:16.8-alpine
+	@echo "2. Waiting for database to be ready..."
+	@sleep 10
+	@echo "3. Database is ready!"
+	@echo "4. You can now run: make run"
+
+# Clean development environment
+.PHONY: dev-clean
+dev-clean:
+	docker stop postgres-dev || true
+	docker rm postgres-dev || true
+
+# Full clean (everything)
+.PHONY: full-clean
+full-clean: clean docker-clean dev-clean
+	@echo "All build artifacts and containers cleaned" 

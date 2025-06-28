@@ -1,13 +1,14 @@
-name: Pull Request Check
+name: Build and Test
 
 on:
-  pull_request:
+  push:
     branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  # Quick PR Check
-  pr-check:
-    name: PR Check
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
     
     services:
@@ -36,15 +37,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
       - name: Run tests
-        run: ./mvnw test
+        run: mvn test
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
           SPRING_DATASOURCE_USERNAME: testuser
@@ -52,10 +46,20 @@ jobs:
           SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
       - name: Build application
-        run: ./mvnw clean compile
+        run: mvn clean package -DskipTests
 
-      - name: Check code formatting
-        run: ./mvnw spotless:check
+      - name: Upload build artifacts
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-jar
+          path: target/*.jar
+          retention-days: 30
 
-      - name: Run dependency check
-        run: ./mvnw dependency:check 
+      - name: Test coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage
+          path: target/site/jacoco/
+          retention-days: 7 

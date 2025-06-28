@@ -12,20 +12,19 @@ WORKDIR /app
 # Copy Maven configuration files first (for better layer caching)
 # Maven will cache dependencies if pom.xml hasn't changed
 COPY pom.xml .
-COPY .mvn/ .mvn/
-COPY mvnw .
+COPY .mvn .mvn
 
 # Download dependencies (this layer will be cached if pom.xml doesn't change)
 # The --no-transfer-progress flag reduces build output noise
-RUN mvn dependency:go-offline --no-transfer-progress
+RUN mvn dependency:go-offline -B
 
 # Copy source code
-COPY src/ src/
+COPY src src
 
 # Build the application
 # -DskipTests skips running tests during build (tests should be run separately)
 # -B runs in batch mode (non-interactive)
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime Stage
 # This stage creates the final lightweight runtime image
@@ -46,7 +45,7 @@ WORKDIR /app
 
 # Copy the built JAR from the build stage
 # The JAR file contains all dependencies and is self-contained
-COPY --from=build /app/target/user-registration-1.0.0.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Change ownership of the application files to the non-root user
 RUN chown -R appuser:appgroup /app
@@ -60,8 +59,8 @@ EXPOSE 8080
 
 # Health check to verify the application is running
 # This helps container orchestration platforms monitor application health
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # JVM options for production deployment
 # These settings optimize the JVM for containerized environments
@@ -69,4 +68,4 @@ ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport"
 
 # Command to run the application
 # The exec form is preferred over shell form for better signal handling
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"] 
+ENTRYPOINT ["java", "-jar", "app.jar"] 
