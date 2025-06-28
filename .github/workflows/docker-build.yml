@@ -12,21 +12,6 @@ jobs:
   test-and-build:
     name: Test and Build Docker Image
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:16.8-alpine
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -40,12 +25,7 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: mvn test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
-          SPRING_DATASOURCE_USERNAME: testuser
-          SPRING_DATASOURCE_PASSWORD: testpass
-          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+        run: mvn test -Dspring.profiles.active=test
 
       - name: Build application
         run: mvn clean package -DskipTests
