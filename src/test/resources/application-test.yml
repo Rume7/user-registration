@@ -48,6 +48,16 @@ app:
     enabled: false  # Disable email sending during tests
     from-name: Test User Registration Team
 
+# Management Configuration (disable mail health check for tests)
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
 # Logging configuration for tests
 logging:
   level:
