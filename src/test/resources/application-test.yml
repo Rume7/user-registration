@@ -33,6 +33,30 @@ spring:
     exclude:
       - org.springdoc.autoconfigure.SpringDocAutoConfiguration
 
+  # Email configuration for testing (disabled)
+  mail:
+    host: localhost
+    port: 1025
+    username: test@example.com
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+
+  # Thymeleaf configuration for testing
+  thymeleaf:
+    cache: false
+
+# Application email configuration for testing
+app:
+  email:
+    enabled: false  # Disable email sending during tests
+    from-name: Test User Registration Team
+
 # Logging configuration for tests
 logging:
   level:
@@ -40,6 +64,7 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.mail: WARN
 
 # Server configuration for tests
 server:

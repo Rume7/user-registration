@@ -61,6 +61,24 @@
 			</dependency>
 
 			<!--
+                Spring Boot Mail Starter: Provides email functionality using Jakarta Mail
+                for sending welcome emails and notifications
+            -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-mail</artifactId>
+			</dependency>
+
+			<!--
+                Thymeleaf: Template engine for email templates
+                Provides HTML template processing for email content
+            -->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			</dependency>
+
+			<!--
                 PostgreSQL JDBC Driver: Enables connectivity to PostgreSQL database
             -->
 			<dependency>

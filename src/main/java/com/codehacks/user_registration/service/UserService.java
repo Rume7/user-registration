@@ -88,15 +88,11 @@ public class UserService {
             throw new IllegalArgumentException("Email '" + email + "' is already registered");
         }
 
-        // Create new User entity using Builder pattern (provided by Lombok)
         User newUser = User.builder()
                 .username(username)
                 .email(email)
-                // createdAt will be set automatically by @PrePersist in User entity
                 .build();
 
-        // Persist the user to database
-        // The save operation returns the entity with generated ID
         User savedUser = userRepository.save(newUser);
         log.info("User successfully saved with ID: {}", savedUser.getId());
 

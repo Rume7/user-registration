@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Our Platform!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 300;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .welcome-message {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        .username {
+            color: #667eea;
+            font-weight: bold;
+        }
+        .features {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .features h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .feature-list li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .social-links {
+            margin: 20px 0;
+        }
+        .social-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .support-info {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to <span th:text="${platformName}">Our Platform</span>!</h1>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-message">
+                Hello <span class="username" th:text="${username}">User</span>! 👋
+                <br><br>
+                Thank you for joining our platform! We're excited to have you as part of our community.
+                Your account has been successfully created and is ready to use.
+            </div>
+            
+            <div class="features">
+                <h3>🚀 What you can do now:</h3>
+                <ul class="feature-list">
+                    <li>Access your personalized dashboard</li>
+                    <li>Explore our comprehensive features</li>
+                    <li>Connect with other users</li>
+                    <li>Customize your profile settings</li>
+                    <li>Get started with our tutorials</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="#" th:href="${loginUrl}" class="cta-button">
+                    🚀 Get Started Now
+                </a>
+            </div>
+            
+            <div class="support-info">
+                <strong>💡 Need Help?</strong><br>
+                Our support team is here to help you get the most out of our platform. 
+                Don't hesitate to reach out if you have any questions!
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Thank you for choosing <span th:text="${platformName}">Our Platform</span>!</strong></p>
+            <p>We're committed to providing you with the best experience possible.</p>
+            
+            <div class="social-links">
+                <a href="#">📧 Support</a> |
+                <a href="#">📖 Documentation</a> |
+                <a href="#">💬 Community</a>
+            </div>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                This email was sent to you because you registered for an account on our platform.<br>
+                If you didn't create this account, please contact our support team immediately.
+            </p>
+            
+            <p style="font-size: 12px; color: #999;">
+                © 2024 <span th:text="${platformName}">Our Platform</span>. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 
