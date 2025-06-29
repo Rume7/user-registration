@@ -37,6 +37,7 @@ spring:
           auth: false
           starttls:
             enable: false
+            required: false
         transport:
           protocol: smtp
           timeout: 5000
@@ -58,7 +59,17 @@ app:
 
 # Server Configuration
 server:
-  port: 8081
+  port: 9090
+
+# Management Configuration (disable mail health check for development)
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 # Logging Configuration
 logging:
