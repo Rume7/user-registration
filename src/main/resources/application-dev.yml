@@ -1,0 +1,70 @@
+# Development Configuration
+# This file contains development-specific settings
+
+spring:
+  # Database Configuration
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # H2 Console (for development)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Email Configuration for Development
+  mail:
+    host: localhost
+    port: 1025
+    username: 
+    password: 
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+        transport:
+          protocol: smtp
+          timeout: 5000
+          connectiontimeout: 5000
+
+  # Thymeleaf Configuration for Email Templates
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+
+# Application-specific email configuration
+app:
+  email:
+    from-name: "User Registration System"
+    enabled: true
+
+# Server Configuration
+server:
+  port: 8080
+
+# Logging Configuration
+logging:
+  level:
+    com.codehacks.user_registration: DEBUG
+    org.springframework.mail: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE 

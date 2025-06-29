@@ -13,6 +13,7 @@ help:
 	@echo "  build     - Build the application"
 	@echo "  test      - Run tests"
 	@echo "  run       - Run the application"
+	@echo "  dev       - Run in development mode with H2 database"
 	@echo "  clean     - Clean build artifacts"
 	@echo "  docker-build - Build Docker image"
 	@echo "  docker-run   - Run Docker container"
@@ -25,6 +26,12 @@ help:
 	@echo "  bump-patch  - Bump patch version (1.0.0 -> 1.0.1)"
 	@echo "  bump-minor  - Bump minor version (1.0.0 -> 1.1.0)"
 	@echo "  bump-major  - Bump major version (1.0.0 -> 2.0.0)"
+	@echo ""
+	@echo "Email Testing Commands:"
+	@echo "  mailhog-up    - Start MailHog for email testing"
+	@echo "  mailhog-down  - Stop MailHog"
+	@echo "  test-email    - Run email functionality tests"
+	@echo "  mailhog-ui    - Open MailHog web interface"
 
 # Build the application
 .PHONY: build
@@ -40,6 +47,11 @@ test:
 .PHONY: run
 run:
 	mvn spring-boot:run
+
+# Run in development mode with H2 database
+.PHONY: dev
+dev:
+	SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
 
 # Clean build artifacts
 .PHONY: clean
@@ -135,4 +147,50 @@ dev-clean:
 # Full clean (everything)
 .PHONY: full-clean
 full-clean: clean docker-clean dev-clean
-	@echo "All build artifacts and containers cleaned" 
+	@echo "All build artifacts and containers cleaned"
+
+# Email Testing Commands
+
+# Start MailHog for email testing
+.PHONY: mailhog-up
+mailhog-up:
+	@echo "Starting MailHog for email testing..."
+	docker-compose -f docker-compose.dev.yml up -d mailhog
+	@echo "MailHog is running!"
+	@echo "SMTP Server: localhost:1025"
+	@echo "Web UI: http://localhost:8025"
+
+# Stop MailHog
+.PHONY: mailhog-down
+mailhog-down:
+	@echo "Stopping MailHog..."
+	docker-compose -f docker-compose.dev.yml down
+	@echo "MailHog stopped"
+
+# Run email functionality tests
+.PHONY: test-email
+test-email:
+	@echo "Running email functionality tests..."
+	@chmod +x scripts/test-email.sh
+	./scripts/test-email.sh
+
+# Open MailHog web interface
+.PHONY: mailhog-ui
+mailhog-ui:
+	@echo "Opening MailHog web interface..."
+	@if command -v open > /dev/null; then \
+		open http://localhost:8025; \
+	elif command -v xdg-open > /dev/null; then \
+		xdg-open http://localhost:8025; \
+	else \
+		echo "Please open http://localhost:8025 in your browser"; \
+	fi
+
+# Complete email testing setup
+.PHONY: email-test-setup
+email-test-setup: mailhog-up
+	@echo "Email testing environment is ready!"
+	@echo "1. MailHog is running on localhost:1025"
+	@echo "2. Web UI available at http://localhost:8025"
+	@echo "3. Start the application: make dev"
+	@echo "4. Run email tests: make test-email" 

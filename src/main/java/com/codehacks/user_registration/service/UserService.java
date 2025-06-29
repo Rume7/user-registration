@@ -1,6 +1,7 @@
 package com.codehacks.user_registration.service;
 
 import com.codehacks.user_registration.event.UserRegisteredEvent;
+import com.codehacks.user_registration.exception.UserRegistrationException;
 import com.codehacks.user_registration.model.User;
 import com.codehacks.user_registration.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -19,7 +21,7 @@ import java.util.Optional;
  * 2. Event publishing in event-driven architecture
  * 3. Transaction management
  * 4. Constructor injection and dependency management
- * 5. Input validation and error handling
+ * 5. Input validation and error handling with custom exceptions
  *
  * Service Layer Responsibilities:
  * - Contains business logic and rules
@@ -71,38 +73,47 @@ public class UserService {
      * @param username the desired username (must be unique)
      * @param email the user's email address (must be unique)
      * @return the saved User entity
-     * @throws IllegalArgumentException if username or email already exists
+     * @throws UserRegistrationException if validation fails or user already exists
      */
     public User registerUser(String username, String email) {
         log.info("Starting user registration process for username: {} and email: {}", username, email);
 
+        // Input validation
+        validateRegistrationInput(username, email);
+
         // Business Rule Validation: Username must be unique
         if (userRepository.existsByUsername(username)) {
             log.warn("Registration failed: Username '{}' already exists", username);
-            throw new IllegalArgumentException("Username '" + username + "' is already taken");
+            throw new UserRegistrationException("Username '" + username + "' is already taken");
         }
 
         // Business Rule Validation: Email must be unique
         if (userRepository.existsByEmail(email)) {
             log.warn("Registration failed: Email '{}' already exists", email);
-            throw new IllegalArgumentException("Email '" + email + "' is already registered");
+            throw new UserRegistrationException("Email '" + email + "' is already registered");
         }
 
-        User newUser = User.builder()
-                .username(username)
-                .email(email)
-                .build();
+        try {
+            User newUser = User.builder()
+                    .username(username)
+                    .email(email)
+                    .build();
 
-        User savedUser = userRepository.save(newUser);
-        log.info("User successfully saved with ID: {}", savedUser.getId());
+            User savedUser = userRepository.save(newUser);
+            log.info("User successfully saved with ID: {}", savedUser.getId());
 
-        // Publish domain event after successful persistence
-        // This triggers all registered event listeners
-        UserRegisteredEvent event = UserRegisteredEvent.fromUser(this, savedUser);
-        eventPublisher.publishEvent(event);
-        log.info("Published UserRegisteredEvent for user: {}", savedUser.getUsername());
+            // Publish domain event after successful persistence
+            // This triggers all registered event listeners
+            UserRegisteredEvent event = UserRegisteredEvent.fromUser(this, savedUser);
+            eventPublisher.publishEvent(event);
+            log.info("Published UserRegisteredEvent for user: {}", savedUser.getUsername());
 
-        return savedUser;
+            return savedUser;
+
+        } catch (Exception e) {
+            log.error("Error during user registration for username: {} and email: {}", username, email, e);
+            throw new UserRegistrationException("Failed to register user: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -110,9 +121,15 @@ public class UserService {
      *
      * @param id the user ID to search for
      * @return Optional containing User if found, empty Optional otherwise
+     * @throws UserRegistrationException if ID is invalid
      */
     public Optional<User> findById(Long id) {
         log.debug("Finding user by ID: {}", id);
+        
+        if (id == null || id <= 0) {
+            throw new UserRegistrationException("Invalid user ID: " + id);
+        }
+        
         return userRepository.findById(id);
     }
 
@@ -121,9 +138,15 @@ public class UserService {
      *
      * @param username the username to search for
      * @return Optional containing User if found, empty Optional otherwise
+     * @throws UserRegistrationException if username is invalid
      */
     public Optional<User> findByUsername(String username) {
         log.debug("Finding user by username: {}", username);
+        
+        if (!StringUtils.hasText(username)) {
+            throw new UserRegistrationException("Username cannot be empty or null");
+        }
+        
         return userRepository.findByUsername(username);
     }
 
@@ -132,8 +155,13 @@ public class UserService {
      *
      * @param username the username to check
      * @return true if available, false if taken
+     * @throws UserRegistrationException if username is invalid
      */
     public boolean isUsernameAvailable(String username) {
+        if (!StringUtils.hasText(username)) {
+            throw new UserRegistrationException("Username cannot be empty or null");
+        }
+        
         return !userRepository.existsByUsername(username);
     }
 
@@ -142,8 +170,13 @@ public class UserService {
      *
      * @param email the email to check
      * @return true if available, false if taken
+     * @throws UserRegistrationException if email is invalid
      */
     public boolean isEmailAvailable(String email) {
+        if (!StringUtils.hasText(email)) {
+            throw new UserRegistrationException("Email cannot be empty or null");
+        }
+        
         return !userRepository.existsByEmail(email);
     }
 
@@ -155,5 +188,44 @@ public class UserService {
      */
     public long getUserCount() {
         return userRepository.count();
+    }
+
+    /**
+     * Validate registration input parameters
+     *
+     * @param username the username to validate
+     * @param email the email to validate
+     * @throws UserRegistrationException if validation fails
+     */
+    private void validateRegistrationInput(String username, String email) {
+        // Username validation
+        if (!StringUtils.hasText(username)) {
+            throw new UserRegistrationException("Username cannot be empty or null");
+        }
+        
+        if (username.length() < 3) {
+            throw new UserRegistrationException("Username must be at least 3 characters long");
+        }
+        
+        if (username.length() > 50) {
+            throw new UserRegistrationException("Username cannot exceed 50 characters");
+        }
+        
+        if (!username.matches("^[a-zA-Z0-9_]+$")) {
+            throw new UserRegistrationException("Username can only contain letters, numbers, and underscores");
+        }
+
+        // Email validation
+        if (!StringUtils.hasText(email)) {
+            throw new UserRegistrationException("Email cannot be empty or null");
+        }
+        
+        if (email.length() > 255) {
+            throw new UserRegistrationException("Email cannot exceed 255 characters");
+        }
+        
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+            throw new UserRegistrationException("Invalid email format");
+        }
     }
 }
