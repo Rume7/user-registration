@@ -27,10 +27,10 @@ spring:
 
   # Email Configuration for Development
   mail:
-    host: localhost
-    port: 1025
-    username: noreply@localhost
-    password: 
+    host: ${EMAIL_HOST:localhost}
+    port: ${EMAIL_PORT:1025}
+    username: ${EMAIL_USERNAME:noreply@localhost}
+    password: ${EMAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -54,8 +54,8 @@ spring:
 # Application-specific email configuration
 app:
   email:
-    from-name: "User Registration System"
-    enabled: true
+    from-name: ${APP_EMAIL_FROM_NAME:User Registration System}
+    enabled: ${APP_EMAIL_ENABLED:true}
 
 # Server Configuration
 server:

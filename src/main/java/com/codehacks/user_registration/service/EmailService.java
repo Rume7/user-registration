@@ -76,7 +76,7 @@ public class EmailService {
                 "username", username,
                 "platformName", "Event-Driven User Registration",
                 "supportEmail", "support@example.com",
-                "loginUrl", "http://localhost:9090/login"
+                "loginUrl", "http://localhost:${SERVER_PORT:9090}/login"
             );
 
             sendHtmlEmail(toEmail, subject, templateName, templateVariables);

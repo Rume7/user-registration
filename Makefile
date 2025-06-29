@@ -51,7 +51,7 @@ run:
 # Run in development mode with H2 database
 .PHONY: dev
 dev:
-	SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
+	export $$(cat .env | xargs) && SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
 
 # Clean build artifacts
 .PHONY: clean

@@ -17,7 +17,7 @@ BASE_URL="http://localhost:9090"
 API_BASE="$BASE_URL/api/v1"
 
 # Test email configuration
-TEST_EMAIL="test@example.com"
+TEST_EMAIL="${RECIPIENT_EMAIL:-test@example.com}"
 TEST_USERNAME="testuser"
 
 echo -e "${BLUE}🧪 Email Testing Script for User Registration System${NC}"

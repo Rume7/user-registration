@@ -69,3 +69,6 @@ Thumbs.db
 ### IDE Specific ###
 *.sublime-project
 *.sublime-workspace
+
+# Environment variables
+.env.*.local
