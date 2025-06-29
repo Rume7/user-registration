@@ -3,157 +3,120 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <!--    Spring Boot Starter Parent provides dependency management and common configurations
-            for Spring Boot applications. It manages versions of common dependencies automatically.
-        -->
-		<parent>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.3.13</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>com.codehacks</groupId>
+	<artifactId>user-registration</artifactId>
+	<version>1.0.1</version>
+	<name>Event-Driven User Registration App</name>
+	<description>Spring Boot application demonstrating event-driven architecture with user registration</description>
+
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-parent</artifactId>
-			<version>3.3.13</version>
-			<relativePath/>
-		</parent>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
 
-		<groupId>com.codehacks</groupId>
-		<artifactId>user-registration</artifactId>
-		<version>1.0.1</version>
-		<name>Event-Driven User Registration App</name>
-		<description>Spring Boot application demonstrating event-driven architecture with user registration</description>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
 
-		<properties>
-			<java.version>17</java.version>
-		</properties>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
 
-		<dependencies>
-			<!--
-                Spring Boot Web Starter: Provides everything needed to build web applications
-                including Spring MVC, embedded Tomcat, and JSON support
-            -->
-			<dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
 				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-web</artifactId>
-			</dependency>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 
-			<!--
-                Spring Boot Data JPA Starter: Provides Spring Data JPA with Hibernate
-                for database operations and ORM (Object-Relational Mapping)
-            -->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-data-jpa</artifactId>
-			</dependency>
-
-			<!--
-                Spring Boot Validation Starter: Provides Bean Validation (JSR-303/380)
-                for input validation using annotations like @NotBlank, @Email, etc.
-            -->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-validation</artifactId>
-			</dependency>
-
-			<!--
-                Spring Boot Actuator: Provides production-ready features for monitoring
-                and managing your application including health checks, metrics, and more
-            -->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-actuator</artifactId>
-			</dependency>
-
-			<!--
-                PostgreSQL JDBC Driver: Enables connectivity to PostgreSQL database
-            -->
-			<dependency>
-				<groupId>org.postgresql</groupId>
-				<artifactId>postgresql</artifactId>
-				<scope>runtime</scope>
-			</dependency>
-
-			<!--
-                Lombok: Reduces boilerplate code by generating getters, setters, constructors,
-                toString, equals, and hashCode methods at compile time
-            -->
-			<dependency>
-				<groupId>org.projectlombok</groupId>
-				<artifactId>lombok</artifactId>
-				<optional>true</optional>
-			</dependency>
-
-			<!--
-                SpringDoc OpenAPI: Automatically generates OpenAPI 3 documentation
-                and provides Swagger UI for interactive API testing
-            -->
-			<dependency>
-				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-				<version>2.2.0</version>
-			</dependency>
-
-			<!--
-                Spring Boot Test Starter: Provides testing dependencies including
-                JUnit 5, Mockito, Spring Test, and other testing utilities
-            -->
-			<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-starter-test</artifactId>
-				<scope>test</scope>
-			</dependency>
-
-			<!--
-                H2 Database: In-memory database for testing
-                Provides fast, isolated database for unit and integration tests
-            -->
-			<dependency>
-				<groupId>com.h2database</groupId>
-				<artifactId>h2</artifactId>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-
-		<build>
-			<plugins>
-				<!--
-                    Spring Boot Maven Plugin: Packages the application as an executable JAR
-                    and provides various goals like spring-boot:run for development
-                -->
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<configuration>
-						<!-- Exclude Lombok from the final JAR as it's only needed at compile time -->
-						<excludes>
-							<exclude>
-								<groupId>org.projectlombok</groupId>
-								<artifactId>lombok</artifactId>
-							</exclude>
-						</excludes>
-					</configuration>
-				</plugin>
-
-				<!--
-                    Spotless Maven Plugin: Code formatting and style enforcement
-                    Ensures consistent code style across the project
-                -->
-				<plugin>
-					<groupId>com.diffplug.spotless</groupId>
-					<artifactId>spotless-maven-plugin</artifactId>
-					<version>2.43.0</version>
-					<configuration>
-						<java>
-							<googleJavaFormat>
-								<version>1.19.2</version>
-								<style>GOOGLE</style>
-							</googleJavaFormat>
-							<removeUnusedImports />
-							<importOrder>
-								<order>java,javax,org,com,</order>
-							</importOrder>
-						</java>
-						<yaml>
-							<prettier />
-						</yaml>
-					</configuration>
-				</plugin>
-			</plugins>
-		</build>
-	</project>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.43.0</version>
+				<configuration>
+					<java>
+						<googleJavaFormat>
+							<version>1.19.2</version>
+							<style>GOOGLE</style>
+						</googleJavaFormat>
+						<removeUnusedImports />
+						<importOrder>
+							<order>java,javax,org,com,</order>
+						</importOrder>
+					</java>
+					<yaml>
+						<prettier />
+					</yaml>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

@@ -29,7 +29,7 @@ sleep 10
 echo "🔍 Checking service health..."
 
 # Check application health
-if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+if curl -f http://localhost:9090/actuator/health > /dev/null 2>&1; then
     echo "✅ Application is healthy"
 else
     echo "⚠️  Application health check failed, but it might still be starting up"
@@ -46,8 +46,8 @@ echo ""
 echo "🎉 Application is starting up!"
 echo ""
 echo "📋 Useful URLs:"
-echo "   🌐 Application: http://localhost:8080"
-echo "   📚 API Documentation: http://localhost:8080/swagger-ui.html"
+echo "   🌐 Application: http://localhost:9090"
+echo "   📚 API Documentation: http://localhost:9090/swagger-ui.html"
 echo "   🗄️  Database: localhost:5432 (userdb)"
 echo ""
 echo "📝 To stop the application:"

@@ -60,7 +60,7 @@ EXPOSE 8080
 # Health check to verify the application is running
 # This helps container orchestration platforms monitor application health
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:9090/actuator/health || exit 1
 
 # JVM options for production deployment
 # These settings optimize the JVM for containerized environments

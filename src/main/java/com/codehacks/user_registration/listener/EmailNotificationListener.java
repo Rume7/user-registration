@@ -1,10 +1,11 @@
 package com.codehacks.user_registration.listener;
 
 import com.codehacks.user_registration.event.UserRegisteredEvent;
+import com.codehacks.user_registration.service.EmailService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
  * This class demonstrates:
  * 1. Event-driven architecture with Spring's @EventListener
  * 2. Decoupling of business logic from side effects
- * 3. Asynchronous event processing (optional)
+ * 3. Integration with real email service
  * 4. Event listener ordering and priority
  *
  * Event Listener Concepts:
@@ -29,8 +30,11 @@ import org.springframework.stereotype.Component;
  * - Supports multiple notification types (email, SMS, push notifications)
  */
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class EmailNotificationListener {
+
+    private final EmailService emailService;
 
     /**
      * Handle UserRegisteredEvent by sending a welcome email
@@ -55,11 +59,16 @@ public class EmailNotificationListener {
                 event.getUsername(), event.getUserId());
 
         try {
-            // Simulate email sending process
-            sendWelcomeEmail(event.getEmail(), event.getUsername());
+            // Send welcome email using the real email service
+            boolean emailSent = emailService.sendWelcomeEmail(event.getEmail(), event.getUsername());
 
-            log.info("✅ Welcome email successfully sent to {} for user {}",
-                    event.getEmail(), event.getUsername());
+            if (emailSent) {
+                log.info("✅ Welcome email successfully sent to {} for user {}",
+                        event.getEmail(), event.getUsername());
+            } else {
+                log.warn("⚠️ Welcome email was not sent to {} for user {} (email service disabled or failed)",
+                        event.getEmail(), event.getUsername());
+            }
 
         } catch (Exception e) {
             // In a real application, you might want to:
@@ -96,56 +105,18 @@ public class EmailNotificationListener {
         log.info("📧 Processing UserRegisteredEvent asynchronously for user: {}", event.getUsername());
 
         try {
-            sendWelcomeEmail(event.getEmail(), event.getUsername());
-            log.info("✅ Async welcome email sent to {}", event.getEmail());
+            boolean emailSent = emailService.sendWelcomeEmail(event.getEmail(), event.getUsername());
+            
+            if (emailSent) {
+                log.info("✅ Async welcome email sent to {}", event.getEmail());
+            } else {
+                log.warn("⚠️ Async welcome email was not sent to {}", event.getEmail());
+            }
         } catch (Exception e) {
             log.error("❌ Async email sending failed: {}", e.getMessage());
         }
     }
     */
-
-    /**
-     * Simulate sending a welcome email
-     *
-     * In a real application, this method would:
-     * 1. Connect to an email service (SendGrid, AWS SES, SMTP server)
-     * 2. Load email templates from resources or database
-     * 3. Personalize the email content with user data
-     * 4. Handle email delivery failures and retries
-     * 5. Track email delivery status and user engagement
-     *
-     * @param email recipient email address
-     * @param username recipient username for personalization
-     */
-    private void sendWelcomeEmail(String email, String username) {
-        // Simulate email processing time
-        try {
-            Thread.sleep(100); // Simulate network call to email service
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Email sending interrupted", e);
-        }
-
-        // In a real implementation, you would:
-        /*
-        EmailRequest emailRequest = EmailRequest.builder()
-            .to(email)
-            .subject("Welcome to Our Platform!")
-            .template("welcome-email")
-            .variables(Map.of(
-                "username", username,
-                "platformName", "Event-Driven App",
-                "supportEmail", "support@example.com"
-            ))
-            .build();
-
-        emailService.sendEmail(emailRequest);
-        */
-
-        log.info("📩 Simulated sending welcome email to: {}", email);
-        log.info("📋 Email content: 'Welcome {}! Thanks for joining our platform. " +
-                "Your account is now active and ready to use.'", username);
-    }
 
     /**
      * Additional event handler for user email verification

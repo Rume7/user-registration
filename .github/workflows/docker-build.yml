@@ -132,10 +132,9 @@ jobs:
           sleep 30
           
           # Test health endpoint
-          curl -f http://localhost:8080/actuator/health || exit 1
-          
-          # Test root endpoint
-          curl -f http://localhost:8080/ || exit 1
+          curl -f http://localhost:9090/actuator/health || exit 1
+          echo "✅ Health check passed"
+          curl -f http://localhost:9090/ || exit 1
           
           # Cleanup
           docker stop test-app test-postgres || true

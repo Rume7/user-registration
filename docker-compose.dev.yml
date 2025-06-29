@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Mock SMTP Server for Email Testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    environment:
+      MH_STORAGE: memory
+    restart: unless-stopped
+    networks:
+      - user-registration-network
+
+  # Optional: Alternative mock SMTP server
+  # fake-smtp:
+  #   image: namshi/smtp:latest
+  #   container_name: fake-smtp
+  #   ports:
+  #     - "1025:25"
+  #   restart: unless-stopped
+  #   networks:
+  #     - user-registration-network
+
+networks:
+  user-registration-network:
+    driver: bridge 

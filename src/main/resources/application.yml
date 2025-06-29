@@ -57,10 +57,46 @@ spring:
         order_inserts: true
         order_updates: true
 
+  # Email Configuration (Jakarta Mail)
+  mail:
+    # SMTP server configuration
+    host: ${EMAIL_HOST:smtp.gmail.com}
+    port: ${EMAIL_PORT:587}
+    username: ${EMAIL_USERNAME:your-email@gmail.com}
+    password: ${EMAIL_PASSWORD:your-app-password}
+    
+    # Email properties for better compatibility
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+        transport:
+          protocol: smtp
+        debug: ${SPRING_MAIL_DEBUG:false}
+
+  # Thymeleaf Configuration for Email Templates
+  thymeleaf:
+    # Template resolution settings
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: ${SPRING_THYMELEAF_CACHE:false}
+    
+    # Template processing settings
+    servlet:
+      content-type: text/html
+
   # Server Configuration
   server:
     # Port configuration - can be overridden by environment variable
-    port: ${SERVER_PORT:8080}
+    port: ${SERVER_PORT:9090}
 
     # Error handling configuration
     error:
@@ -68,6 +104,14 @@ spring:
       include-stacktrace: on_param
       # Include error message in responses
       include-message: always
+
+# Application-specific email configuration
+app:
+  email:
+    # Email sender name
+    from-name: ${APP_EMAIL_FROM_NAME:User Registration Team}
+    # Enable/disable email sending
+    enabled: ${APP_EMAIL_ENABLED:true}
 
 # Logging Configuration
 # Different log levels for different packages
@@ -82,6 +126,8 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOGGING_LEVEL_ORG_HIBERNATE_TYPE_DESCRIPTOR_SQL_BASICBINDER:TRACE}
     # Connection pool logging
     com.zaxxer.hikari: INFO
+    # Email service logging
+    org.springframework.mail: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_MAIL:INFO}
 
   # Log pattern for better readability
   pattern:
@@ -105,9 +151,9 @@ springdoc:
       name: User Registration Team
       email: support@example.com
   servers:
-    - url: http://localhost:8080
+    - url: http://localhost:9090
       description: Local development server
-    - url: http://localhost:8080
+    - url: http://localhost:9090
       description: Docker container server
 
 # Spring Boot Actuator Configuration

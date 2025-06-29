@@ -3,25 +3,16 @@
 # It uses H2 in-memory database for fast, isolated testing
 
 spring:
-  # Use H2 in-memory database for testing
-  # This provides fast, isolated database for each test run
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password: 
     driver-class-name: org.h2.Driver
 
-  # JPA configuration for testing
   jpa:
-    # Create and drop schema for each test run
-    # This ensures clean state between tests
     hibernate:
       ddl-auto: create-drop
-    
-    # Show SQL for debugging tests
     show-sql: true
-    
-    # H2 dialect for optimal SQL generation
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
@@ -33,6 +24,40 @@ spring:
     exclude:
       - org.springdoc.autoconfigure.SpringDocAutoConfiguration
 
+  # Email configuration for testing (disabled)
+  mail:
+    host: localhost
+    port: 1025
+    username: test@example.com
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+
+  # Thymeleaf configuration for testing
+  thymeleaf:
+    cache: false
+
+# Application email configuration for testing
+app:
+  email:
+    enabled: false  # Disable email sending during tests
+    from-name: Test User Registration Team
+
+# Management Configuration (disable mail health check for tests)
+management:
+  health:
+    mail:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
 # Logging configuration for tests
 logging:
   level:
@@ -40,6 +65,7 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.mail: WARN
 
 # Server configuration for tests
 server:
