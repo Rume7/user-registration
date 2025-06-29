@@ -118,7 +118,7 @@ test_user_registration() {
     user_data="{\"username\":\"$username\",\"email\":\"$email\",\"password\":\"password123\"}"
     
     echo "Registering user: $username ($email)"
-    response=$(make_request "POST" "/users" "$user_data")
+    response=$(make_request "POST" "/users/register" "$user_data")
     echo "Response: $response"
     
     if echo "$response" | grep -q '"id"'; then
