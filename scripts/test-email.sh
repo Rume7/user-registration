@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-BASE_URL="http://localhost:8080"
+BASE_URL="http://localhost:8081"
 API_BASE="$BASE_URL/api/v1"
 
 # Test email configuration
