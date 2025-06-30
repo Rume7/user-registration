@@ -9,10 +9,12 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
@@ -48,15 +50,23 @@ public class GlobalExceptionHandler {
         
         log.warn("User registration error: {}", ex.getMessage());
         
+        // Determine appropriate status code based on exception message
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        if (ex.getMessage().contains("not found")) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (ex.getMessage().contains("already") || ex.getMessage().contains("already registered")) {
+            status = HttpStatus.CONFLICT;
+        }
+        
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
+                .status(status.value())
                 .error("User Registration Error")
                 .message(ex.getMessage())
                 .path(request.getDescription(false))
                 .build();
 
-        return ResponseEntity.badRequest().body(errorResponse);
+        return ResponseEntity.status(status).body(errorResponse);
     }
 
     /**
@@ -293,5 +303,47 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /**
+     * Handle missing request parameter exceptions
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
+            MissingServletRequestParameterException ex, WebRequest request) {
+        
+        log.warn("Missing request parameter: {}", ex.getMessage());
+        
+        String message = String.format("Required parameter '%s' is missing", ex.getParameterName());
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Missing Parameter")
+                .message(message)
+                .path(request.getDescription(false))
+                .build();
+
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    /**
+     * Handle HTTP message not readable exceptions (invalid JSON, etc.)
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex, WebRequest request) {
+        
+        log.warn("HTTP message not readable: {}", ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Invalid Request")
+                .message("Invalid request format")
+                .path(request.getDescription(false))
+                .build();
+
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 } 
