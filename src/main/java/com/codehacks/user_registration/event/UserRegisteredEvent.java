@@ -69,7 +69,7 @@ public class UserRegisteredEvent extends ApplicationEvent {
      * It represents the component that published the event
      */
     public UserRegisteredEvent(Object source, Long userId, String username, String email) {
-        super(source); // Call parent constructor with event source
+        super(source);
         this.userId = userId;
         this.username = username;
         this.email = email;

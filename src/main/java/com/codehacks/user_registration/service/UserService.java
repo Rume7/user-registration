@@ -198,7 +198,6 @@ public class UserService {
      * @throws UserRegistrationException if validation fails
      */
     private void validateRegistrationInput(String username, String email) {
-        // Username validation
         if (!StringUtils.hasText(username)) {
             throw new UserRegistrationException("Username cannot be empty or null");
         }
@@ -207,15 +206,14 @@ public class UserService {
             throw new UserRegistrationException("Username must be at least 3 characters long");
         }
         
-        if (username.length() > 50) {
-            throw new UserRegistrationException("Username cannot exceed 50 characters");
+        if (username.length() > 30) {
+            throw new UserRegistrationException("Username cannot exceed 30 characters");
         }
         
         if (!username.matches("^[a-zA-Z0-9_]+$")) {
             throw new UserRegistrationException("Username can only contain letters, numbers, and underscores");
         }
 
-        // Email validation
         if (!StringUtils.hasText(email)) {
             throw new UserRegistrationException("Email cannot be empty or null");
         }
