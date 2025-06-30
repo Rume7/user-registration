@@ -40,6 +40,16 @@ services:
       # Server configuration
       SERVER_PORT: 8080
       
+      # Gmail SMTP Configuration for Production Testing
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_USERNAME: ${EMAIL_USERNAME:-rumyprojects@gmail.com}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD:-tvyyuckwtiorlfpx}
+      
+      # Application Configuration
+      APP_EMAIL_FROM_NAME: ${APP_EMAIL_FROM_NAME:-Rhume}
+      APP_EMAIL_ENABLED: ${APP_EMAIL_ENABLED:-true}
+      
       # Logging configuration
       LOGGING_LEVEL_COM_CODEHACKS_USER_REGISTRATION: INFO
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: WARN
