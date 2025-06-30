@@ -120,21 +120,21 @@ jobs:
           # Run the application container
           docker run -d \
             --name test-app \
-            --link test-postgres:postgres \
+            --network test-network \
             -p 8080:8080 \
             -e SPRING_DATASOURCE_URL=jdbc:postgresql://test-postgres:5432/testdb \
             -e SPRING_DATASOURCE_USERNAME=testuser \
             -e SPRING_DATASOURCE_PASSWORD=testpass \
-            -e SPRING_JPA_HIBERNATE_DDL_AUTO=create-drop \
-            "$TEST_TAG"
+            -e SERVER_PORT=8080 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ steps.bump-version.outputs.new_version }}
           
           # Wait for application to start
           sleep 30
           
           # Test health endpoint
-          curl -f http://localhost:9090/actuator/health || exit 1
+          curl -f http://localhost:8080/actuator/health || exit 1
           echo "✅ Health check passed"
-          curl -f http://localhost:9090/ || exit 1
+          curl -f http://localhost:8080/ || exit 1
           
           # Cleanup
           docker stop test-app test-postgres || true
