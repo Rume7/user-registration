@@ -149,7 +149,6 @@ public class UserResponse {
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                // Note: email is excluded for privacy
                 .createdAt(user.getCreatedAt())
                 .build();
     }

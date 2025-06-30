@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Optional;
 
 /**
  * UserService - Business Logic Layer for User operations
@@ -74,16 +73,14 @@ public class UserService {
     public User registerUser(String username, String email) {
         log.info("Starting user registration process for username: {} and email: {}", username, email);
 
-        // Input validation
         validateRegistrationInput(username, email);
 
-        // Business Rule Validation: Username must be unique
+        // Business Rule Validation: Username & email must be unique
         if (userRepository.existsByUsername(username)) {
             log.warn("Registration failed: Username '{}' already exists", username);
             throw new UserRegistrationException("Username '" + username + "' is already taken");
         }
 
-        // Business Rule Validation: Email must be unique
         if (userRepository.existsByEmail(email)) {
             log.warn("Registration failed: Email '{}' already exists", email);
             throw new UserRegistrationException("Email '" + email + "' is already registered");
@@ -119,14 +116,14 @@ public class UserService {
      * @return Optional containing User if found, empty Optional otherwise
      * @throws UserRegistrationException if ID is invalid
      */
-    public Optional<User> findById(Long id) {
-        log.debug("Finding user by ID: {}", id);
-        
-        if (id == null || id <= 0) {
-            throw new UserRegistrationException("Invalid user ID: " + id);
+    public User findById(Long id) {
+        if (id == null & id < 1) {
+            throw new UserRegistrationException("User ID cannot be null nor negative");
         }
         
-        return userRepository.findById(id);
+        log.info("Finding user by ID: {}", id);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserRegistrationException("User not found with ID: " + id));
     }
 
     /**
@@ -136,14 +133,14 @@ public class UserService {
      * @return Optional containing User if found, empty Optional otherwise
      * @throws UserRegistrationException if username is invalid
      */
-    public Optional<User> findByUsername(String username) {
-        log.debug("Finding user by username: {}", username);
-        
+    public User findByUsername(String username) {
         if (!StringUtils.hasText(username)) {
             throw new UserRegistrationException("Username cannot be empty or null");
         }
         
-        return userRepository.findByUsername(username);
+        log.info("Finding user by username: {}", username);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserRegistrationException("User not found with username: " + username));
     }
 
     /**

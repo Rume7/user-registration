@@ -189,7 +189,7 @@ public class EmailController {
             )
     })
     public ResponseEntity<Map<String, Object>> getEmailServiceStatus() {
-        log.debug("Getting email service status");
+        log.info("Getting email service status");
 
         boolean enabled = emailService.isEmailEnabled();
         String status = enabled ? "active" : "disabled";

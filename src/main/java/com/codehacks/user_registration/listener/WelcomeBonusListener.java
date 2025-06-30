@@ -46,7 +46,6 @@ public class WelcomeBonusListener {
                 event.getUsername(), event.getUserId());
 
         try {
-            // Grant welcome bonus to the new user
             grantWelcomeBonus(event.getUserId(), event.getUsername());
 
             log.info("✅ Welcome bonus successfully granted to user {} (ID: {})",

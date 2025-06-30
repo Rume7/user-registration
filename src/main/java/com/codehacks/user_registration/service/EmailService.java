@@ -65,7 +65,6 @@ public class EmailService {
             return true;
         }
 
-        // Validate input parameters
         validateEmailInput(toEmail, username);
 
         try {

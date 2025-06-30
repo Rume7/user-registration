@@ -48,37 +48,16 @@ import java.time.LocalDateTime;
 @Builder
 public class User {
 
-    /**
-     * Primary key - auto-generated using database sequence
-     * IDENTITY strategy works well with PostgreSQL's SERIAL type
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * Username field with database constraints
-     * - Cannot be null (nullable = false)
-     * - Must be unique (defined in table constraints above)
-     * - Maximum length of 30 characters
-     */
     @Column(nullable = false, unique = true, length = 30)
     private String username;
 
-    /**
-     * Email field with database constraints
-     * - Cannot be null
-     * - Must be unique
-     * - Maximum length of 100 characters to accommodate long email addresses
-     */
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    /**
-     * Timestamp when the user was created
-     * - Cannot be null
-     * - Automatically set when entity is persisted (see @PrePersist method)
-     */
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 

@@ -25,7 +25,7 @@ import java.util.Optional;
  * - Easy to test with mocks
  * - Supports different data sources without changing business logic
  */
-@Repository // Optional - Spring Data JPA repositories are automatically detected
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
