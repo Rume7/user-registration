@@ -117,7 +117,7 @@ public class UserService {
      * @throws UserRegistrationException if ID is invalid
      */
     public User findById(Long id) {
-        if (id == null & id < 1) {
+        if (id == null || id < 1) {
             throw new UserRegistrationException("User ID cannot be null nor negative");
         }
         

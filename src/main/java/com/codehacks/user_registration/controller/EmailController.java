@@ -138,6 +138,14 @@ public class EmailController {
             @Parameter(description = "Recipient username", required = true, example = "testuser")
             String username) {
 
+        // Validate parameters
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("Email parameter is required and cannot be empty");
+        }
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username parameter is required and cannot be empty");
+        }
+
         log.info("Sending test welcome email to: {} for user: {}", email, username);
 
         try {
