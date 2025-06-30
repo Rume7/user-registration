@@ -56,6 +56,10 @@ app:
   email:
     from-name: ${APP_EMAIL_FROM_NAME:User Registration System}
     enabled: ${APP_EMAIL_ENABLED:true}
+  verification:
+    token:
+      expiry:
+        hours: 2
 
 # Server Configuration
 server:

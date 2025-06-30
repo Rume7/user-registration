@@ -76,6 +76,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findByEmail(String email);
 
+    /**
+     * Find a user by verification token
+     *
+     * Used for email verification process
+     * Spring Data JPA automatically generates:
+     * SELECT u FROM User u WHERE u.verificationToken = ?1
+     *
+     * @param verificationToken the verification token to search for
+     * @return Optional containing User if found, empty Optional otherwise
+     */
+    Optional<User> findByVerificationToken(String verificationToken);
+
     // Additional methods you might need:
 
     /**

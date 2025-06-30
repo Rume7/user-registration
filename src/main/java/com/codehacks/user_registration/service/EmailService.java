@@ -75,7 +75,7 @@ public class EmailService {
                 "username", username,
                 "platformName", "Event-Driven User Registration",
                 "supportEmail", "support@example.com",
-                "loginUrl", "http://localhost:${SERVER_PORT:9090}/login"
+                "loginUrl", "http://localhost:${SERVER_PORT:8080}/login"
             );
 
             sendHtmlEmail(toEmail, subject, templateName, templateVariables);
@@ -170,6 +170,55 @@ public class EmailService {
         } catch (Exception e) {
             log.error("❌ Error sending text email to {}: {}", toEmail, e.getMessage());
             throw new UserRegistrationException("Email sending error", e);
+        }
+    }
+
+    /**
+     * Send email verification email to user
+     *
+     * @param toEmail recipient email address
+     * @param username recipient username for personalization
+     * @param verificationUrl the verification URL to include in email
+     * @return true if email sent successfully, false otherwise
+     * @throws UserRegistrationException if email sending fails
+     */
+    public boolean sendVerificationEmail(String toEmail, String username, String verificationUrl) {
+        if (!emailEnabled) {
+            log.info("Email sending is disabled. Skipping verification email to: {}", toEmail);
+            return true;
+        }
+
+        validateEmailInput(toEmail, username);
+
+        try {
+            String subject = "Verify Your Email Address";
+            String templateName = "verification-email";
+            
+            Map<String, Object> templateVariables = Map.of(
+                "username", username,
+                "verificationUrl", verificationUrl,
+                "platformName", "Event-Driven User Registration",
+                "supportEmail", "support@example.com",
+                "expiryHours", "24"
+            );
+
+            sendHtmlEmail(toEmail, subject, templateName, templateVariables);
+            
+            log.info("✅ Verification email sent successfully to: {}", toEmail);
+            return true;
+
+        } catch (MailAuthenticationException e) {
+            log.error("❌ Email authentication failed for {}: {}", toEmail, e.getMessage());
+            throw new UserRegistrationException("Email service authentication failed", e);
+        } catch (MailSendException e) {
+            log.error("❌ Email send failed for {}: {}", toEmail, e.getMessage());
+            throw new UserRegistrationException("Failed to send email", e);
+        } catch (MailException e) {
+            log.error("❌ Mail service error for {}: {}", toEmail, e.getMessage());
+            throw new UserRegistrationException("Email service error", e);
+        } catch (Exception e) {
+            log.error("❌ Unexpected error sending verification email to {}: {}", toEmail, e.getMessage());
+            throw new UserRegistrationException("Unexpected error during email sending", e);
         }
     }
 
