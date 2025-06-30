@@ -141,6 +141,8 @@ jobs:
             -e SPRING_DATASOURCE_USERNAME=testuser \
             -e SPRING_DATASOURCE_PASSWORD=testpass \
             -e SERVER_PORT=8080 \
+            -e APP_EMAIL_ENABLED=false \
+            -e MANAGEMENT_HEALTH_MAIL_ENABLED=false \
             "$TEST_TAG"
           
           # Wait for application to start
@@ -257,6 +259,8 @@ jobs:
             -e SPRING_DATASOURCE_USERNAME=testuser \
             -e SPRING_DATASOURCE_PASSWORD=testpass \
             -e SERVER_PORT=8080 \
+            -e APP_EMAIL_ENABLED=false \
+            -e MANAGEMENT_HEALTH_MAIL_ENABLED=false \
             "$TEST_TAG"
           
           # Wait for application to start
