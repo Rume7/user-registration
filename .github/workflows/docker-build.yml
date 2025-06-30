@@ -146,6 +146,22 @@ jobs:
           # Wait for application to start
           sleep 30
           
+          # Wait for application to be fully ready with retries
+          echo "Waiting for application to be ready..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "✅ Application is ready after $i attempts"
+              break
+            fi
+            echo "Attempt $i: Application not ready yet, waiting..."
+            sleep 10
+            if [ $i -eq 30 ]; then
+              echo "❌ Application failed to start within 5 minutes"
+              docker logs test-app
+              exit 1
+            fi
+          done
+          
           # Test health endpoint
           curl -f http://localhost:8080/actuator/health || exit 1
           echo "✅ Health check passed"
@@ -245,6 +261,22 @@ jobs:
           
           # Wait for application to start
           sleep 30
+          
+          # Wait for application to be fully ready with retries
+          echo "Waiting for application to be ready..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "✅ Application is ready after $i attempts"
+              break
+            fi
+            echo "Attempt $i: Application not ready yet, waiting..."
+            sleep 10
+            if [ $i -eq 30 ]; then
+              echo "❌ Application failed to start within 5 minutes"
+              docker logs test-app
+              exit 1
+            fi
+          done
           
           # Test health endpoint
           curl -f http://localhost:8080/actuator/health || exit 1
