@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 
 /**
  * User Entity - Represents the users table in PostgreSQL database
- *
+ * Enhanced with email verification capabilities
  */
 @Entity
 @Table(name = "users",
@@ -44,6 +44,16 @@ public class User {
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+    @Column(name = "verification_token", length = 255)
+    private String verificationToken;
+
+    @Column(name = "verification_token_expiry")
+    private LocalDateTime verificationTokenExpiry;
+
     /**
      * JPA Lifecycle callback - automatically sets createdAt before persisting
      * This ensures createdAt is always set without manual intervention
@@ -53,5 +63,8 @@ public class User {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.emailVerified == null) {
+            this.emailVerified = false;
+        }
     }
 }
