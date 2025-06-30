@@ -116,9 +116,13 @@ jobs:
           # Build a local test image
           docker build -t "$TEST_TAG" .
           
+          # Create test network
+          docker network create test-network
+          
           # Start PostgreSQL for testing
           docker run -d \
             --name test-postgres \
+            --network test-network \
             -e POSTGRES_DB=testdb \
             -e POSTGRES_USER=testuser \
             -e POSTGRES_PASSWORD=testpass \
@@ -137,7 +141,7 @@ jobs:
             -e SPRING_DATASOURCE_USERNAME=testuser \
             -e SPRING_DATASOURCE_PASSWORD=testpass \
             -e SERVER_PORT=8080 \
-            ${{ env.REGISTRY }}/${{ steps.docker-image.outputs.lower_repo }}:v${{ steps.bump-version.outputs.new_version }}
+            "$TEST_TAG"
           
           # Wait for application to start
           sleep 30
@@ -150,6 +154,7 @@ jobs:
           # Cleanup
           docker stop test-app test-postgres || true
           docker rm test-app test-postgres || true
+          docker network rm test-network || true
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -211,9 +216,13 @@ jobs:
           # Build a local test image
           docker build -t "$TEST_TAG" .
           
+          # Create test network
+          docker network create test-network
+          
           # Start PostgreSQL for testing
           docker run -d \
             --name test-postgres \
+            --network test-network \
             -e POSTGRES_DB=testdb \
             -e POSTGRES_USER=testuser \
             -e POSTGRES_PASSWORD=testpass \
@@ -244,4 +253,5 @@ jobs:
           
           # Cleanup
           docker stop test-app test-postgres || true
-          docker rm test-app test-postgres || true 
+          docker rm test-app test-postgres || true
+          docker network rm test-network || true 
