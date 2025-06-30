@@ -2,6 +2,8 @@ name: Build and Deploy
 
 on:
   push:
+    branches: [ main, feature/* ]
+  pull_request:
     branches: [ main ]
 
 env:
@@ -17,12 +19,21 @@ jobs:
   test-and-build:
     name: Test and Build Docker Image
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set Docker image name
+        id: docker-image
+        run: |
+          # Convert repository name to lowercase for Docker compatibility
+          LOWER_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "lower_repo=$LOWER_REPO" >> $GITHUB_OUTPUT
+          echo "Docker image name: $LOWER_REPO"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -81,7 +92,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ steps.docker-image.outputs.lower_repo }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -126,7 +137,7 @@ jobs:
             -e SPRING_DATASOURCE_USERNAME=testuser \
             -e SPRING_DATASOURCE_PASSWORD=testpass \
             -e SERVER_PORT=8080 \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ steps.bump-version.outputs.new_version }}
+            ${{ env.REGISTRY }}/${{ steps.docker-image.outputs.lower_repo }}:v${{ steps.bump-version.outputs.new_version }}
           
           # Wait for application to start
           sleep 30
@@ -157,7 +168,80 @@ jobs:
             ## Docker Image
             
             ```bash
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:v${{ steps.bump-version.outputs.new_version }}
+            docker pull ${{ env.REGISTRY }}/${{ steps.docker-image.outputs.lower_repo }}:v${{ steps.bump-version.outputs.new_version }}
             ```
           draft: false
-          prerelease: false 
+          prerelease: false
+
+  branch-test:
+    name: Test Branch Changes
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Docker image name
+        id: docker-image
+        run: |
+          # Convert repository name to lowercase for Docker compatibility
+          LOWER_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "lower_repo=$LOWER_REPO" >> $GITHUB_OUTPUT
+          echo "Docker image name: $LOWER_REPO"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run tests
+        run: mvn test -Dspring.profiles.active=test
+
+      - name: Build application
+        run: mvn clean package -DskipTests
+
+      - name: Test Docker image
+        run: |
+          # Create a simple tag for testing
+          TEST_TAG="user-registration:test-${{ github.sha }}"
+          
+          # Build a local test image
+          docker build -t "$TEST_TAG" .
+          
+          # Start PostgreSQL for testing
+          docker run -d \
+            --name test-postgres \
+            -e POSTGRES_DB=testdb \
+            -e POSTGRES_USER=testuser \
+            -e POSTGRES_PASSWORD=testpass \
+            -p 5432:5432 \
+            postgres:16.8-alpine
+          
+          # Wait for PostgreSQL to be ready
+          sleep 10
+          
+          # Run the application container
+          docker run -d \
+            --name test-app \
+            --network test-network \
+            -p 8080:8080 \
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://test-postgres:5432/testdb \
+            -e SPRING_DATASOURCE_USERNAME=testuser \
+            -e SPRING_DATASOURCE_PASSWORD=testpass \
+            -e SERVER_PORT=8080 \
+            "$TEST_TAG"
+          
+          # Wait for application to start
+          sleep 30
+          
+          # Test health endpoint
+          curl -f http://localhost:8080/actuator/health || exit 1
+          echo "✅ Health check passed"
+          curl -f http://localhost:8080/ || exit 1
+          
+          # Cleanup
+          docker stop test-app test-postgres || true
+          docker rm test-app test-postgres || true 

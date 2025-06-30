@@ -35,15 +35,11 @@ import java.util.Optional;
  * - Allows multiple listeners to respond to business events
  */
 @Service
-@Transactional // All methods in this service run within a transaction by default
-@RequiredArgsConstructor // Lombok generates constructor for final fields (dependency injection)
+@Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class UserService {
 
-    /**
-     * Repository for User data access operations
-     * Injected via constructor (recommended approach for mandatory dependencies)
-     */
     private final UserRepository userRepository;
 
     /**
