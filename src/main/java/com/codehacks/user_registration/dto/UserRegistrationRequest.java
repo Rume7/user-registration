@@ -42,7 +42,7 @@ public class UserRegistrationRequest {
      *
      * Validation Rules:
      * - Cannot be null or empty (@NotBlank)
-     * - Must be between 3 and 20 characters (@Size)
+     * - Must be between 3 and 30 characters (@Size)
      * - Should contain only alphanumeric characters and underscores (additional validation can be added)
      *
      * Business Considerations:
@@ -51,7 +51,7 @@ public class UserRegistrationRequest {
      * - Character restrictions prevent security issues and ensure URL safety
      */
     @NotBlank(message = "Username is required and cannot be empty")
-    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
+    @Size(min = 3, max = 30, message = "Username must be between 3 and 30 characters")
     // Additional validation pattern can be added:
     // @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers, and underscores")
     private String username;

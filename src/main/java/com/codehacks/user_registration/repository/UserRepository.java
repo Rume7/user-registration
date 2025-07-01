@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * UserRepository - Data Access Layer for User entity
@@ -87,6 +88,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return Optional containing User if found, empty Optional otherwise
      */
     Optional<User> findByVerificationToken(String verificationToken);
+
+    /**
+     * Find a user by UUID
+     *
+     * @param uuid the UUID to search for
+     * @return Optional containing User if found, empty Optional otherwise
+     */
+    Optional<User> findByUuid(UUID uuid);
 
     // Additional methods you might need:
 

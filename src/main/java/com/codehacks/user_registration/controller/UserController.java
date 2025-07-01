@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * UserController - REST API Controller for User operations
@@ -163,16 +164,17 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "400", description = "Invalid user ID")
     })
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
         log.info("Received request to get user by ID: {}", id);
-        
         try {
             User user = userService.findById(id);
-            log.info("User found with ID: {}", id);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(UserResponse.fromUser(user));
         } catch (UserRegistrationException e) {
-            log.info("User not found with ID: {}", id);
-            throw new UserRegistrationException(e.getMessage());
+            return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "User Registration Error",
+                "message", "User not found with ID: " + id
+            ));
         }
     }
 
@@ -202,16 +204,17 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found"),
             @ApiResponse(responseCode = "400", description = "Invalid username")
     })
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
         log.info("Received request to get user by username: {}", username);
-        
         try {
             User user = userService.findByUsername(username);
-            log.info("User found with username: {}", username);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(UserResponse.fromUser(user));
         } catch (UserRegistrationException e) {
-            log.info("User not found with username: {}", username);
-            throw new UserRegistrationException(e.getMessage());
+            return ResponseEntity.status(404).body(Map.of(
+                "status", 404,
+                "error", "User Registration Error",
+                "message", "User not found with username: " + username
+            ));
         }
     }
 
@@ -287,5 +290,18 @@ public class UserController {
         log.info("Total user count: {}", count);
         
         return ResponseEntity.ok(Map.of("count", count));
+    }
+
+    /**
+     * Get user by UUID
+     *
+     * @param uuid the user UUID to retrieve
+     * @return ResponseEntity with user data or 404 if not found
+     */
+    @GetMapping("/uuid/{uuid}")
+    public ResponseEntity<UserResponse> getUserByUuid(@PathVariable UUID uuid) {
+        log.info("Received request to get user by UUID: {}", uuid);
+        User user = userService.findByUuid(uuid);
+        return ResponseEntity.ok(UserResponse.fromUser(user));
     }
 }
