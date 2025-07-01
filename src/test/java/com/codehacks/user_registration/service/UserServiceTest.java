@@ -31,6 +31,9 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private EmailVerificationService emailVerificationService;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -60,6 +63,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        doNothing().when(emailVerificationService).sendVerificationEmail(any(User.class));
 
         // When
         User result = userService.registerUser("testuser", "test@example.com");
@@ -73,6 +77,7 @@ class UserServiceTest {
         verify(userRepository).existsByUsername("testuser");
         verify(userRepository).existsByEmail("test@example.com");
         verify(userRepository).save(any(User.class));
+        verify(emailVerificationService).sendVerificationEmail(any(User.class));
         verify(eventPublisher).publishEvent(any());
     }
 

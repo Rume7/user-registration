@@ -11,6 +11,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for handling email verification functionality
@@ -159,5 +160,54 @@ public class EmailVerificationService {
             log.error("❌ Error checking verification status for user {}: {}", userId, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Check if user email is verified by username
+     * @param username The username to check
+     * @return true if email is verified
+     */
+    public boolean isEmailVerifiedByUsername(String username) {
+        try {
+            return userRepository.findByUsername(username)
+                    .map(User::getEmailVerified)
+                    .orElse(false);
+        } catch (Exception e) {
+            log.error("❌ Error checking verification status for user {}: {}", username, e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean userExistsById(Long userId) {
+        return userRepository.existsById(userId);
+    }
+
+    public boolean userExistsByUsername(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
+
+    /**
+     * Check if user email is verified by UUID
+     * @param uuid The user UUID to check
+     * @return true if email is verified
+     */
+    public boolean isEmailVerifiedByUuid(UUID uuid) {
+        try {
+            return userRepository.findByUuid(uuid)
+                    .map(User::getEmailVerified)
+                    .orElse(false);
+        } catch (Exception e) {
+            log.error("❌ Error checking verification status for user UUID {}: {}", uuid, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Check if user exists by UUID
+     * @param uuid The user UUID to check
+     * @return true if user exists
+     */
+    public boolean userExistsByUuid(UUID uuid) {
+        return userRepository.findByUuid(uuid).isPresent();
     }
 } 

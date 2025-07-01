@@ -286,7 +286,10 @@ class UserControllerTest {
 
         // When & Then
         mockMvc.perform(get("/api/v1/users/0"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("User Registration Error"))
+                .andExpect(jsonPath("$.message").value("User not found with ID: 0"));
     }
 
     @Test

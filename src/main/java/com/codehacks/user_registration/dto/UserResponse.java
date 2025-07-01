@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * UserResponse - Data Transfer Object for user registration responses
@@ -45,6 +46,15 @@ public class UserResponse {
     private Long id;
 
     /**
+     * User UUID - Unique identifier
+     *
+     * Exposed for client-side operations and future API calls
+     * In high-security scenarios, you might consider using UUIDs
+     * or encrypted IDs instead of sequential database IDs
+     */
+    private UUID uuid;
+
+    /**
      * Username - Public identifier
      *
      * Safe to expose as it's already public information
@@ -73,6 +83,17 @@ public class UserResponse {
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private LocalDateTime createdAt;
+
+    /**
+     * Email verification status
+     *
+     * Indicates whether the user's email address has been verified.
+     * This is important for user experience and account security.
+     * 
+     * Security Note: While this information is useful for UI/UX,
+     * consider rate limiting to prevent enumeration attacks.
+     */
+    private boolean emailVerified;
 
     // Additional fields that might be included in responses:
 
@@ -130,9 +151,11 @@ public class UserResponse {
     public static UserResponse fromUser(com.codehacks.user_registration.model.User user) {
         return UserResponse.builder()
                 .id(user.getId())
+                .uuid(user.getUuid())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .createdAt(user.getCreatedAt())
+                .emailVerified(user.getEmailVerified())
                 .build();
     }
 

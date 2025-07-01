@@ -14,6 +14,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * User Entity - Represents the users table in PostgreSQL database
@@ -54,6 +55,9 @@ public class User {
     @Column(name = "verification_token_expiry")
     private LocalDateTime verificationTokenExpiry;
 
+    @Column(nullable = false, unique = true, updatable = false)
+    private UUID uuid;
+
     /**
      * JPA Lifecycle callback - automatically sets createdAt before persisting
      * This ensures createdAt is always set without manual intervention
@@ -65,6 +69,9 @@ public class User {
         this.createdAt = LocalDateTime.now();
         if (this.emailVerified == null) {
             this.emailVerified = false;
+        }
+        if (this.uuid == null) {
+            this.uuid = java.util.UUID.randomUUID();
         }
     }
 }

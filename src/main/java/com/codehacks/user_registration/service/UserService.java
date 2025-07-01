@@ -10,6 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import java.util.UUID;
 
 
 /**
@@ -40,6 +41,7 @@ import org.springframework.util.StringUtils;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final EmailVerificationService emailVerificationService;
 
     /**
      * Spring's event publisher for broadcasting domain events
@@ -58,7 +60,8 @@ public class UserService {
      * This method demonstrates the complete flow of:
      * 1. Input validation (business rules)
      * 2. Data persistence
-     * 3. Event publishing (triggering side effects)
+     * 3. Email verification token generation
+     * 4. Event publishing (triggering side effects)
      *
      * Transaction Behavior:
      * - @Transactional ensures atomicity
@@ -94,6 +97,10 @@ public class UserService {
 
             User savedUser = userRepository.save(newUser);
             log.info("User successfully saved with ID: {}", savedUser.getId());
+
+            // Generate verification token and send verification email
+            emailVerificationService.sendVerificationEmail(savedUser);
+            log.info("Verification email sent for user: {}", savedUser.getUsername());
 
             // Publish domain event after successful persistence
             // This triggers all registered event listeners
@@ -218,5 +225,10 @@ public class UserService {
         if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new UserRegistrationException("Invalid email format");
         }
+    }
+
+    public User findByUuid(UUID uuid) {
+        return userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new UserRegistrationException("User not found with UUID: " + uuid));
     }
 }

@@ -145,7 +145,7 @@ class EmailVerificationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/v1/email/verify-email")
                         .param("token", "error-token"))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Email verification error: Verification error"));
     }
@@ -154,6 +154,7 @@ class EmailVerificationControllerTest {
     @DisplayName("Should return verification status when email is verified")
     void shouldReturnVerificationStatusWhenEmailIsVerified() throws Exception {
         // Given
+        when(emailVerificationService.userExistsById(1L)).thenReturn(true);
         when(emailVerificationService.isEmailVerified(1L)).thenReturn(true);
 
         // When & Then
@@ -168,6 +169,7 @@ class EmailVerificationControllerTest {
     @DisplayName("Should return verification status when email is not verified")
     void shouldReturnVerificationStatusWhenEmailIsNotVerified() throws Exception {
         // Given
+        when(emailVerificationService.userExistsById(1L)).thenReturn(true);
         when(emailVerificationService.isEmailVerified(1L)).thenReturn(false);
 
         // When & Then
@@ -182,12 +184,13 @@ class EmailVerificationControllerTest {
     @DisplayName("Should handle exception during verification status check")
     void shouldHandleExceptionDuringVerificationStatusCheck() throws Exception {
         // Given
+        when(emailVerificationService.userExistsById(1L)).thenReturn(true);
         when(emailVerificationService.isEmailVerified(1L))
                 .thenThrow(new RuntimeException("Status check error"));
 
         // When & Then
         mockMvc.perform(get("/api/v1/email/verification-status/1"))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.verified").value(false))
                 .andExpect(jsonPath("$.message").value("Error checking verification status: Status check error"))
                 .andExpect(jsonPath("$.userId").value(1));
@@ -224,22 +227,23 @@ class EmailVerificationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/v1/email/verify-email")
                         .param("token", ""))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid or expired verification token"));
     }
 
     @Test
     @DisplayName("Should handle invalid user ID in verification status")
     void shouldHandleInvalidUserIdInVerificationStatus() throws Exception {
         // Given
-        when(emailVerificationService.isEmailVerified(999L))
-                .thenThrow(new RuntimeException("User not found"));
+        when(emailVerificationService.userExistsById(999L)).thenReturn(false);
 
         // When & Then
         mockMvc.perform(get("/api/v1/email/verification-status/999"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.verified").value(false))
-                .andExpect(jsonPath("$.message").value("Error checking verification status: User not found"))
-                .andExpect(jsonPath("$.userId").value(999));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("User Registration Error"))
+                .andExpect(jsonPath("$.message").value("User not found with ID: 999"));
     }
 
     @Test
@@ -269,7 +273,7 @@ class EmailVerificationControllerTest {
         // When & Then
         mockMvc.perform(get("/api/v1/email/verify-email")
                         .param("token", "db-error-token"))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Email verification error: Database connection failed"));
     }
@@ -293,12 +297,13 @@ class EmailVerificationControllerTest {
     @DisplayName("Should handle repository error during status check")
     void shouldHandleRepositoryErrorDuringStatusCheck() throws Exception {
         // Given
+        when(emailVerificationService.userExistsById(1L)).thenReturn(true);
         when(emailVerificationService.isEmailVerified(1L))
                 .thenThrow(new RuntimeException("Repository connection error"));
 
         // When & Then
         mockMvc.perform(get("/api/v1/email/verification-status/1"))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.verified").value(false))
                 .andExpect(jsonPath("$.message").value("Error checking verification status: Repository connection error"))
                 .andExpect(jsonPath("$.userId").value(1));

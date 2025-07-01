@@ -10,9 +10,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * EmailVerificationController - REST API Controller for Email Verification operations
@@ -139,25 +145,24 @@ public class EmailVerificationController {
             )
     })
     public ResponseEntity<Map<String, Object>> verifyEmail(
-            @RequestParam
-            @Parameter(description = "Verification token from email", required = true, example = "abc123def456")
-            String token) {
-
+            @RequestParam(required = false) String token) {
         log.info("Verifying email with token: {}", token);
-
-        if (token == null || token.trim().isEmpty()) {
+        if (token == null) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
                 "message", "Token parameter is required and cannot be empty"
             ));
         }
-
+        if (token.trim().isEmpty()) {
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "message", "Invalid or expired verification token"
+            ));
+        }
         try {
             var userOpt = emailVerificationService.verifyEmail(token);
-            
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                log.info("✅ Email verified successfully for user: {}", user.getUsername());
                 return ResponseEntity.ok(Map.of(
                     "success", true,
                     "message", "Email verified successfully for user " + user.getUsername(),
@@ -165,16 +170,13 @@ public class EmailVerificationController {
                     "email", user.getEmail()
                 ));
             } else {
-                log.warn("⚠️ Email verification failed for token: {}", token);
                 return ResponseEntity.ok(Map.of(
                     "success", false,
                     "message", "Invalid or expired verification token"
                 ));
             }
-
         } catch (Exception e) {
-            log.error("❌ Email verification error: {}", e.getMessage());
-            return ResponseEntity.ok(Map.of(
+            return ResponseEntity.status(500).body(Map.of(
                 "success", false,
                 "message", "Email verification error: " + e.getMessage()
             ));
@@ -215,30 +217,151 @@ public class EmailVerificationController {
             )
     })
     public ResponseEntity<Map<String, Object>> getVerificationStatus(
-            @PathVariable
-            @Parameter(description = "User ID", required = true, example = "1")
-            Long userId) {
-
+            @PathVariable Long userId) {
         log.info("Checking email verification status for user ID: {}", userId);
-
         try {
+            boolean exists = emailVerificationService.userExistsById(userId);
+            if (!exists) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "status", 404,
+                    "error", "User Registration Error",
+                    "message", "User not found with ID: " + userId
+                ));
+            }
             boolean verified = emailVerificationService.isEmailVerified(userId);
-            
             String message = verified ? "Email is verified" : "Email is not verified";
-            log.info("📧 Email verification status for user {}: {}", userId, message);
-            
             return ResponseEntity.ok(Map.of(
                 "verified", verified,
                 "message", message,
                 "userId", userId
             ));
-
         } catch (Exception e) {
-            log.error("❌ Error checking verification status for user {}: {}", userId, e.getMessage());
-            return ResponseEntity.ok(Map.of(
+            return ResponseEntity.status(500).body(Map.of(
                 "verified", false,
                 "message", "Error checking verification status: " + e.getMessage(),
                 "userId", userId
+            ));
+        }
+    }
+
+    /**
+     * Check if user's email is verified by username
+     *
+     * @param username username to check
+     * @return ResponseEntity with verification status
+     */
+    @GetMapping("/verification-status/username/{username}")
+    @Operation(
+            summary = "Check email verification status by username",
+            description = "Checks if a user's email address is verified by their username"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Verification status retrieved",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            schema = @io.swagger.v3.oas.annotations.media.Schema(
+                                    example = "{\"verified\": true, \"message\": \"Email is verified\"}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            schema = @io.swagger.v3.oas.annotations.media.Schema(
+                                    example = "{\"verified\": false, \"message\": \"User not found\"}"
+                            )
+                    )
+            )
+    })
+    public ResponseEntity<Map<String, Object>> getVerificationStatusByUsername(
+            @PathVariable String username) {
+        log.info("Checking email verification status for username: {}", username);
+        try {
+            boolean exists = emailVerificationService.userExistsByUsername(username);
+            if (!exists) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "status", 404,
+                    "error", "User Registration Error",
+                    "message", "User not found with username: " + username
+                ));
+            }
+            boolean verified = emailVerificationService.isEmailVerifiedByUsername(username);
+            String message = verified ? "Email is verified" : "Email is not verified";
+            return ResponseEntity.ok(Map.of(
+                "verified", verified,
+                "message", message,
+                "username", username
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "verified", false,
+                "message", "Error checking verification status: " + e.getMessage(),
+                "username", username
+            ));
+        }
+    }
+
+    /**
+     * Check if user's email is verified by UUID
+     *
+     * @param uuid user UUID to check
+     * @return ResponseEntity with verification status
+     */
+    @GetMapping("/verification-status/uuid/{uuid}")
+    @Operation(
+            summary = "Check email verification status by UUID",
+            description = "Checks if a user's email address is verified by their UUID"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Verification status retrieved",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            schema = @io.swagger.v3.oas.annotations.media.Schema(
+                                    example = "{\"verified\": true, \"message\": \"Email is verified\"}"
+                            )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User not found",
+                    content = @io.swagger.v3.oas.annotations.media.Content(
+                            mediaType = "application/json",
+                            schema = @io.swagger.v3.oas.annotations.media.Schema(
+                                    example = "{\"verified\": false, \"message\": \"User not found\"}"
+                            )
+                    )
+            )
+    })
+    public ResponseEntity<Map<String, Object>> getVerificationStatusByUuid(
+            @PathVariable UUID uuid) {
+        log.info("Checking email verification status for UUID: {}", uuid);
+        try {
+            boolean exists = emailVerificationService.userExistsByUuid(uuid);
+            if (!exists) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "status", 404,
+                    "error", "User Registration Error",
+                    "message", "User not found with UUID: " + uuid
+                ));
+            }
+            boolean verified = emailVerificationService.isEmailVerifiedByUuid(uuid);
+            String message = verified ? "Email is verified" : "Email is not verified";
+            return ResponseEntity.ok(Map.of(
+                "verified", verified,
+                "message", message,
+                "uuid", uuid.toString()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "verified", false,
+                "message", "Error checking verification status: " + e.getMessage(),
+                "uuid", uuid.toString()
             ));
         }
     }
