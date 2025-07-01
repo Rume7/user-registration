@@ -42,11 +42,50 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
-        run: mvn test -Dspring.profiles.active=test
+      - name: Configure Maven for rate limiting
+        run: |
+          # Copy the Maven settings file
+          mkdir -p ~/.m2
+          cp .github/maven-settings.xml ~/.m2/settings.xml
+          echo "✅ Maven settings configured for rate limiting"
 
-      - name: Build application
-        run: mvn clean package -DskipTests
+      - name: Run tests with retry
+        run: |
+          # Retry logic for Maven Central rate limiting
+          for i in {1..3}; do
+            echo "Attempt $i: Running tests..."
+            if mvn test -Dspring.profiles.active=test -B --settings ~/.m2/settings.xml; then
+              echo "✅ Tests completed successfully on attempt $i"
+              break
+            else
+              if [ $i -lt 3 ]; then
+                echo "⚠️ Attempt $i failed, waiting 30 seconds before retry..."
+                sleep 30
+              else
+                echo "❌ All attempts failed"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Build application with retry
+        run: |
+          # Retry logic for Maven Central rate limiting
+          for i in {1..3}; do
+            echo "Attempt $i: Building application..."
+            if mvn clean package -DskipTests -B --settings ~/.m2/settings.xml; then
+              echo "✅ Build completed successfully on attempt $i"
+              break
+            else
+              if [ $i -lt 3 ]; then
+                echo "⚠️ Attempt $i failed, waiting 30 seconds before retry..."
+                sleep 30
+              else
+                echo "❌ All attempts failed"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Bump version
         id: bump-version
@@ -220,11 +259,50 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
-        run: mvn test -Dspring.profiles.active=test
+      - name: Configure Maven for rate limiting
+        run: |
+          # Copy the Maven settings file
+          mkdir -p ~/.m2
+          cp .github/maven-settings.xml ~/.m2/settings.xml
+          echo "✅ Maven settings configured for rate limiting"
 
-      - name: Build application
-        run: mvn clean package -DskipTests
+      - name: Run tests with retry
+        run: |
+          # Retry logic for Maven Central rate limiting
+          for i in {1..3}; do
+            echo "Attempt $i: Running tests..."
+            if mvn test -Dspring.profiles.active=test -B --settings ~/.m2/settings.xml; then
+              echo "✅ Tests completed successfully on attempt $i"
+              break
+            else
+              if [ $i -lt 3 ]; then
+                echo "⚠️ Attempt $i failed, waiting 30 seconds before retry..."
+                sleep 30
+              else
+                echo "❌ All attempts failed"
+                exit 1
+              fi
+            fi
+          done
+
+      - name: Build application with retry
+        run: |
+          # Retry logic for Maven Central rate limiting
+          for i in {1..3}; do
+            echo "Attempt $i: Building application..."
+            if mvn clean package -DskipTests -B --settings ~/.m2/settings.xml; then
+              echo "✅ Build completed successfully on attempt $i"
+              break
+            else
+              if [ $i -lt 3 ]; then
+                echo "⚠️ Attempt $i failed, waiting 30 seconds before retry..."
+                sleep 30
+              else
+                echo "❌ All attempts failed"
+                exit 1
+              fi
+            fi
+          done
 
       - name: Test Docker image
         run: |

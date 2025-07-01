@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <!-- Mirror configuration to handle rate limiting -->
+  <mirrors>
+    <!-- Primary mirror - Maven Central -->
+    <mirror>
+      <id>maven-central</id>
+      <name>Maven Central</name>
+      <url>https://repo1.maven.org/maven2/</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+    
+    <!-- Alternative mirrors for redundancy -->
+    <mirror>
+      <id>maven-central-2</id>
+      <name>Maven Central Alternative</name>
+      <url>https://maven-central.storage.googleapis.com/maven2/</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+    
+    <!-- Google Maven Repository as backup -->
+    <mirror>
+      <id>google-maven</id>
+      <name>Google Maven Repository</name>
+      <url>https://maven.google.com/</url>
+      <mirrorOf>google</mirrorOf>
+    </mirror>
+  </mirrors>
+
+  <!-- Repository configuration -->
+  <profiles>
+    <profile>
+      <id>default</id>
+      <repositories>
+        <!-- Maven Central -->
+        <repository>
+          <id>central</id>
+          <name>Maven Central</name>
+          <url>https://repo1.maven.org/maven2/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        
+        <!-- Alternative Maven Central -->
+        <repository>
+          <id>central-alt</id>
+          <name>Maven Central Alternative</name>
+          <url>https://maven-central.storage.googleapis.com/maven2/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+        
+        <!-- Google Maven Repository -->
+        <repository>
+          <id>google</id>
+          <name>Google Maven Repository</name>
+          <url>https://maven.google.com/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      
+      <!-- Plugin repositories -->
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <name>Maven Central</name>
+          <url>https://repo1.maven.org/maven2/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <!-- Active profiles -->
+  <activeProfiles>
+    <activeProfile>default</activeProfile>
+  </activeProfiles>
+
+  <!-- Connection and timeout settings -->
+  <servers>
+    <server>
+      <id>central</id>
+      <configuration>
+        <timeout>30000</timeout>
+        <connectionTimeout>30000</connectionTimeout>
+      </configuration>
+    </server>
+  </servers>
+
+</settings> 
