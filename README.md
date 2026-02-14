@@ -219,7 +219,7 @@ The application uses structured logging with configurable levels:
 
 2. **Deploy with Docker Compose**
    ```bash
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose up -d
    ```
 
 ### Kubernetes Deployment

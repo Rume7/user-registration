@@ -155,7 +155,7 @@ full-clean: clean docker-clean dev-clean
 .PHONY: mailhog-up
 mailhog-up:
 	@echo "Starting MailHog for email testing..."
-	docker-compose -f docker-compose.dev.yml up -d mailhog
+	docker-compose --profile dev up -d mailhog
 	@echo "MailHog is running!"
 	@echo "SMTP Server: localhost:1025"
 	@echo "Web UI: http://localhost:8025"
@@ -164,7 +164,7 @@ mailhog-up:
 .PHONY: mailhog-down
 mailhog-down:
 	@echo "Stopping MailHog..."
-	docker-compose -f docker-compose.dev.yml down
+	docker-compose stop mailhog
 	@echo "MailHog stopped"
 
 # Run email functionality tests

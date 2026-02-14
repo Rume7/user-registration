@@ -87,7 +87,7 @@ test_email_connectivity() {
         echo -e "${GREEN}✅ Email service connectivity test passed${NC}"
     else
         echo -e "${RED}❌ Email service connectivity test failed${NC}"
-        echo "Make sure MailHog is running: docker-compose -f docker-compose.dev.yml up -d"
+        echo "Make sure MailHog is running: docker-compose --profile dev up -d"
     fi
 }
 
@@ -138,10 +138,10 @@ show_mailhog_info() {
     echo "SMTP Server: localhost:1025"
     echo
     echo "To start MailHog:"
-    echo "  docker-compose -f docker-compose.dev.yml up -d"
+    echo "  docker-compose --profile dev up -d"
     echo
     echo "To stop MailHog:"
-    echo "  docker-compose -f docker-compose.dev.yml down"
+    echo "  docker-compose stop mailhog"
 }
 
 # Main execution

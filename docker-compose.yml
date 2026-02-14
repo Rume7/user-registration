@@ -1,135 +1,161 @@
-# Docker Compose configuration for User Registration Application
-# This file defines the complete application stack including the Spring Boot app and PostgreSQL database
-# It demonstrates container orchestration, networking, and environment configuration
+# User Registration Application – single production-ready Compose file
+# Usage:
+#   Production (app + db):        docker-compose up -d
+#   With MailHog (local dev):     docker-compose --profile dev up -d
+#   With Nginx proxy:             docker-compose --profile proxy up -d  (requires ./nginx/)
+#   With monitoring:              docker-compose --profile monitoring up -d  (requires ./prometheus/)
+#
+# First run: ensure DB schema exists. With Flyway, it runs on startup. Otherwise set in .env:
+#   SPRING_JPA_HIBERNATE_DDL_AUTO=update  (then switch to validate for production)
 
 version: '3.8'
 
-# Define services that make up the application
 services:
   app:
-    # Build the application from the current directory using the Dockerfile
     build: .
-    
-    # Container name for easy identification
     container_name: user-registration-app
-    
-    # Port mapping: host_port:container_port
-    # The application runs on port 8080 inside the container
-    # and is accessible on port 8080 on the host machine
     ports:
       - "8080:8080"
-    
-    # Dependencies: this service depends on the database service
-    # Docker Compose will start the database first
     depends_on:
-      - db
-    
-    # Environment variables for the application
-    # These override the default values in application.yml
+      db:
+        condition: service_healthy
     environment:
-      # Database connection configuration
-      # The hostname 'db' refers to the database service defined below
+      SPRING_PROFILES_ACTIVE: production
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/userdb
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      
-      # JPA/Hibernate configuration
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_JPA_SHOW_SQL: false
-      
-      # Server configuration
       SERVER_PORT: 8080
-      
-      # Gmail SMTP Configuration for Production Testing
       EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
       EMAIL_PORT: ${EMAIL_PORT:-587}
       EMAIL_USERNAME: ${EMAIL_USERNAME}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-      
-      # Application Configuration
       APP_EMAIL_FROM_NAME: ${APP_EMAIL_FROM_NAME:-Rhume}
       APP_EMAIL_ENABLED: ${APP_EMAIL_ENABLED:-true}
-      
-      # Logging configuration
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
       LOGGING_LEVEL_COM_CODEHACKS_USER_REGISTRATION: INFO
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: WARN
-    
-    # Restart policy: restart the container if it fails
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxGCPauseMillis=200"
     restart: unless-stopped
-    
-    # Health check to ensure the application is running properly
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-    
-    # Network configuration - both services use the same network
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/tmp
     networks:
       - user-registration-network
 
-  # PostgreSQL Database Service
   db:
-    # Use the official PostgreSQL image with Alpine Linux for smaller size
     image: postgres:16.8-alpine
-    
-    # Container name for easy identification
     container_name: user-registration-db
-    
-    # Port mapping for database access (optional, for debugging)
-    # Comment out if you don't need external database access
     ports:
-      - "5432:5432"
-    
-    # Environment variables for PostgreSQL configuration
+      - "127.0.0.1:5432:5432"
     environment:
-      # Database name, user, and password
-      # These values can be overridden using a .env file
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      
-      # PostgreSQL configuration for better performance
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
-    
-    # Volume for data persistence
-    # This ensures database data survives container restarts
     volumes:
-      # Named volume for database data
       - postgres_data:/var/lib/postgresql/data
-      
-      # Optional: mount initialization scripts
-      # - ./init-scripts:/docker-entrypoint-initdb.d
-    
-    # Restart policy
+      - ./backup:/backup
     restart: unless-stopped
-    
-    # Health check for database readiness
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-userdb}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    
-    # Network configuration
     networks:
       - user-registration-network
 
-# Named volumes for data persistence
-# Volumes are managed by Docker and persist across container restarts
+  # Optional: MailHog for local email testing. Start with: docker-compose --profile dev up -d
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: user-registration-mailhog
+    profiles:
+      - dev
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MH_STORAGE: memory
+    restart: unless-stopped
+    networks:
+      - user-registration-network
+
+  # Optional: Nginx reverse proxy. Requires ./nginx/nginx.conf and ./nginx/ssl. Start with: docker-compose --profile proxy up -d
+  nginx:
+    image: nginx:alpine
+    container_name: user-registration-nginx
+    profiles:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - user-registration-network
+
+  # Optional: Prometheus. Requires ./prometheus/prometheus.yml. Start with: docker-compose --profile monitoring up -d
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: user-registration-prometheus
+    profiles:
+      - monitoring
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - user-registration-network
+
+  # Optional: Grafana. Start with: docker-compose --profile monitoring up -d
+  grafana:
+    image: grafana/grafana:latest
+    container_name: user-registration-grafana
+    profiles:
+      - monitoring
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - user-registration-network
+
 volumes:
-  # PostgreSQL data volume
   postgres_data:
     driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
 
-# Custom network for service communication
-# This creates an isolated network for the application services
 networks:
   user-registration-network:
     driver: bridge
-    # Optional: configure network settings
-    # ipam:
-    #   config:
-    #     - subnet: 172.20.0.0/16 
